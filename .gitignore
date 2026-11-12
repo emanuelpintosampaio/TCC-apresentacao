@@ -1,0 +1,5 @@
+# Saídas geradas ao renderizar com o Manim e o manim-slides
+manim/media/
+manim/slides/
+__pycache__/
+*.pyc
