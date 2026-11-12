@@ -1,11 +1,676 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <title>Apresentação do TCC</title>
-    <meta http-equiv="refresh" content="0; url=apresentacao(2).html">
-  </head>
-  <body>
-    <p><a href="apresentacao(2).html">Abrir a apresentação</a></p>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>O caminho do CO₂ · Gotículas marinhas · Emanuel Pinto Sampaio</title>
+  <meta name="description" content="Uma gotícula sai da crista da onda, absorve CO₂ do ar e o leva para o oceano. A pesquisa de Emanuel Pinto Sampaio (Matemática Industrial, UFES) sobre como simular esse processo com precisão e rapidez.">
+  <meta name="theme-color" content="#01111c">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="O caminho do CO₂ · Gotículas marinhas">
+  <meta property="og:description" content="Uma gotícula sai da crista da onda, absorve CO₂ do ar e o leva para o oceano.">
+  <meta property="og:image" content="site/media/og.jpg">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23053a52'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%2361e3ff' stroke-width='2'/%3E%3Ccircle cx='11' cy='11' r='3' fill='%23eaf6ff'/%3E%3C/svg%3E">
+
+  <script>document.documentElement.classList.add("js")</script>
+  <link rel="preload" href="site/vendor/fonts/sora-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="site/vendor/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="site/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="site/vendor/lenis/lenis.css">
+  <link rel="stylesheet" href="site/css/style.css?v=4">
+</head>
+<body>
+  <a class="skip" href="#impacto">Pular para o conteúdo</a>
+
+  <!-- Fundo do resto da página: o mar por dentro -->
+  <div class="deep" aria-hidden="true">
+    <video id="deepVideo" muted loop playsinline preload="none" data-src="site/media/deep-loop.mp4"></video>
+    <div class="deep__shade"></div>
+    <div class="deep__rays"></div>
+    <div class="deep__bubbles"></div>
+  </div>
+
+  <!-- A gotícula 3D e as moléculas de CO₂ (site/js/droplet.js) -->
+  <canvas id="drop" aria-hidden="true"></canvas>
+  <span class="co2tag" id="co2tag" aria-hidden="true">CO<sub>2</sub></span>
+
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#viagem" aria-label="Voltar ao começo">
+      <span class="nav__dot" aria-hidden="true"></span>
+      <span>O caminho do <b>CO<sub>2</sub></b></span>
+    </a>
+    <nav class="nav__links" aria-label="Seções">
+      <a href="#impacto">Impacto</a>
+      <a href="#fisica">A física</a>
+      <a href="#pesquisa">A pesquisa</a>
+      <a href="#numeros">Resultados</a>
+      <a href="#defesa">Defesa</a>
+      <a href="#materiais">Materiais</a>
+    </nav>
+    <button class="btn btn--pill" type="button" data-open-player>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+      Apresentar
+    </button>
+  </header>
+
+  <!-- Trilho lateral: em que parte da história você está -->
+  <aside class="rail" aria-label="Partes da página">
+    <span class="rail__name" id="railName" aria-live="polite">A viagem</span>
+    <div class="rail__dots">
+      <button type="button" aria-label="A viagem"></button>
+      <button type="button" aria-label="Impacto"></button>
+      <button type="button" aria-label="A física"></button>
+      <button type="button" aria-label="A pesquisa"></button>
+      <button type="button" aria-label="Como avançar no tempo"></button>
+      <button type="button" aria-label="Resultados"></button>
+      <button type="button" aria-label="Conclusão"></button>
+      <button type="button" aria-label="Defesa"></button>
+      <button type="button" aria-label="Materiais"></button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- ======================= ATO 1: A VIAGEM ======================= -->
+    <!-- A tela fica fixa e o scroll comanda o vídeo, a gotícula e as legendas (site/js/story.js) -->
+    <section class="stage" id="viagem" data-chapter="A viagem" aria-label="A viagem da gotícula">
+      <div class="stage__pin">
+        <video class="stage__video" id="waveVideo" muted playsinline preload="none"
+               data-src="site/media/wave-scrub.mp4" poster="site/media/hero-poster.webp" aria-hidden="true"></video>
+        <div class="stage__shade" aria-hidden="true"></div>
+        <div class="stage__drop" id="stageDrop" aria-hidden="true">
+          <svg viewBox="0 0 40 16"><circle cx="20" cy="8" r="5" fill="#141414"/><circle cx="9" cy="8" r="4.5" fill="#ff2e45"/><circle cx="31" cy="8" r="4.5" fill="#ff2e45"/></svg>
+        </div>
+
+        <div class="stage__caps">
+          <article class="cap cap--title" data-from="0" data-to="0.115" data-poster="site/media/story-1.webp">
+            <p class="kicker">Trabalho de Conclusão de Curso · Matemática Industrial · UFES</p>
+            <h1 class="cap__display">O caminho<br>do CO<sub>2</sub></h1>
+            <p class="cap__lead">Uma gotícula sai da crista da onda, absorve gás carbônico do ar e o leva para o fundo do mar. Como calcular isso com precisão, sem gastar uma eternidade?</p>
+            <div class="cap__cta">
+              <button class="btn btn--primary" type="button" data-dive>
+                Mergulhar
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="btn btn--ghost" type="button" data-open-player>
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+                Ver a defesa
+              </button>
+            </div>
+            <p class="cap__byline">Emanuel Pinto Sampaio · Orientador: Prof. Dr. Iury Ângelo Gonçalves · São Mateus, ES · 2026</p>
+          </article>
+
+          <article class="cap" data-from="0.13" data-to="0.29" data-poster="site/media/story-2.webp">
+            <p class="kicker"><b>01</b> Na crista</p>
+            <h2 class="cap__title">A onda quebra</h2>
+            <p>Com vento forte, acima de 13&nbsp;m/s, a crista da onda é rasgada e lança no ar gotículas de espuma.</p>
+          </article>
+
+          <article class="cap" data-from="0.31" data-to="0.595" data-poster="site/media/story-3.webp">
+            <p class="kicker"><b>02</b> No ar</p>
+            <h2 class="cap__title">Ela absorve CO<sub>2</sub></h2>
+            <p>Suspensa no ar, a gotícula troca gás com a atmosfera: o CO<sub>2</sub> atravessa a superfície dela por difusão. Ao mesmo tempo, ela evapora e muda de temperatura, e isso muda quanto gás ela consegue guardar.</p>
+          </article>
+
+          <article class="cap" data-from="0.61" data-to="0.79" data-poster="site/media/story-4.webp">
+            <p class="kicker"><b>03</b> A queda</p>
+            <h2 class="cap__title">Depois de \(\tau_f\), ela cai</h2>
+            <p>O tempo de vida da gotícula no ar depende da altura da onda e da velocidade com que ela cai: \(\tau_f = \dfrac{H_s}{2\,U_f}\).</p>
+          </article>
+
+          <article class="cap" data-from="0.81" data-to="1" data-poster="site/media/story-5.webp">
+            <p class="kicker"><b>04</b> No oceano</p>
+            <h2 class="cap__title">E leva o CO<sub>2</sub> para o mar</h2>
+            <p>Ao voltar, a gotícula carrega o gás que absorveu: CO<sub>2</sub> que sai da atmosfera e entra no oceano. Um mecanismo minúsculo, que se repete a cada onda que quebra.</p>
+          </article>
+        </div>
+
+        <!-- Painel ao vivo: os números são da simulação de referência do TCC -->
+        <aside class="hud" id="hud" aria-label="Estado da gotícula durante a viagem">
+          <p class="hud__title">Gotícula de 500&nbsp;µm</p>
+          <dl>
+            <div><dt>t</dt><dd><b id="hudT">0,000</b> s</dd></div>
+            <div><dt>r(t)</dt><dd><b id="hudR">500,000</b> µm</dd></div>
+            <div><dt>T(t)</dt><dd><b id="hudTemp">19,80</b> °C</dd></div>
+            <div class="hud__m"><dt>m(t)</dt><dd><b id="hudM">6,500</b> × 10<sup>−12</sup> mol</dd></div>
+          </dl>
+          <div class="hud__track" aria-hidden="true"><span id="hudFill"></span></div>
+          <p class="hud__src">t vai de 0 até \(\tau_f \approx 0{,}72\) s. Valores da simulação de referência (SCONTROL) do TCC.</p>
+        </aside>
+
+        <div class="stage__bar" aria-hidden="true">
+          <span>Na crista</span><span>No ar</span><span>A queda</span><span>No oceano</span>
+          <i><b id="stageBar"></b></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ATO 2: DEBAIXO D'ÁGUA ===================== -->
+
+    <!-- ========================= IMPACTO ========================= -->
+    <section class="sec" id="impacto" data-chapter="Impacto">
+      <div class="sec__inner">
+        <header class="sec__head sec__head--wide front">
+          <p class="kicker reveal">Por que isso importa</p>
+          <h2 class="reveal">O mar respira<br>o nosso CO<sub>2</sub></h2>
+          <p class="lead reveal">
+            O dióxido de carbono retém calor na atmosfera e, emitido em massa, pode modificar o sistema terrestre.
+            Os oceanos funcionam como sumidouros desse gás. Saber quanto CO<sub>2</sub> passa do ar para o mar é
+            parte do cálculo do clima do planeta.
+          </p>
+        </header>
+
+        <div class="impact front">
+          <article class="impact__item reveal">
+            <figure><img src="site/media/fig1.webp" width="1280" height="853" alt="Ilustração da Terra com raios solares e moléculas de CO2 retendo calor na atmosfera." loading="lazy"></figure>
+            <div>
+              <span class="impact__n mono">01</span>
+              <h3>O CO<sub>2</sub> aquece a Terra</h3>
+              <p>Ele é um dos gases mais importantes da atmosfera: a emissão em massa aumenta a retenção de calor na troposfera.</p>
+            </div>
+          </article>
+          <article class="impact__item reveal">
+            <figure><img src="site/media/fig4.webp" width="1280" height="853" alt="Esquema da troca de CO2 entre ar e mar, com o fluxo F, a diferença de concentração e a velocidade de transferência k." loading="lazy"></figure>
+            <div>
+              <span class="impact__n mono">02</span>
+              <h3>O mar troca gás com o ar</h3>
+              <p>O fluxo é proporcional à diferença de concentração entre o ar e o mar, \(F = k\,\Delta c\). A velocidade de transferência \(k\) depende da agitação da água e do vento.</p>
+            </div>
+          </article>
+          <article class="impact__item reveal">
+            <figure><img src="site/media/fig5.webp" width="1280" height="853" alt="Onda quebrando, com bolhas abaixo da superfície e gotículas lançadas no ar." loading="lazy"></figure>
+            <div>
+              <span class="impact__n mono">03</span>
+              <h3>Ondas abrem atalhos</h3>
+              <p>A quebra das ondas cria duas rotas de pequena escala: bolhas que afundam e gotículas que voam. Juntas, elas podem contribuir para o balanço global de CO<sub>2</sub> entre oceano e atmosfera.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="bigquote front reveal">
+          <p class="kicker">O problema</p>
+          <p class="bigquote__text">Para prever o tempo e o clima, os modelos precisam desse processo. Mas cada gotícula é um sistema de equações acopladas, e calcular isso custa caro.</p>
+          <p class="bigquote__sub">Por isso a pergunta desta pesquisa: dá para simplificar a física ou escolher um método numérico mais rápido sem perder precisão?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= A FÍSICA ========================= -->
+    <section class="sec" id="fisica" data-chapter="A física">
+      <div class="sec__inner sec__split sec__split--stage">
+        <div class="sec__text front">
+          <p class="kicker reveal">A física de uma gotícula</p>
+          <h2 class="reveal">Três números<br>contam tudo</h2>
+          <p class="lead reveal">
+            A gotícula é tratada como uma esfera. A cada instante, o estado dela cabe em um vetor:
+          </p>
+          <div class="eq eq--big reveal">\[ \mathbf{y}(t) = \big[\, r(t),\; T(t),\; m(t) \,\big]^{\top} \]</div>
+          <p class="reveal">
+            A simulação acompanha a gotícula do lançamento até a volta ao mar, durante o tempo de vida
+            \(\tau_f = \dfrac{H_s}{2\,U_f}\), em que \(H_s\) é a altura significativa da onda e \(U_f\) é a
+            velocidade com que ela cai (Gonçalves e Innocentini, 2018).
+          </p>
+        </div>
+
+        <div class="stage-ring">
+          <div class="drop-anchor drop-anchor--ring" data-temp="0.4" data-mass="0.55"></div>
+          <button class="callout callout--r front reveal" type="button" data-hl="r">
+            <b>\(r(t)\)</b><span>raio: ela evapora e encolhe</span>
+          </button>
+          <button class="callout callout--t front reveal" type="button" data-hl="t">
+            <b>\(T(t)\)</b><span>temperatura: muda muito rápido</span>
+          </button>
+          <button class="callout callout--m front reveal" type="button" data-hl="m">
+            <b>\(m(t)\)</b><span>massa de CO<sub>2</sub> dentro dela</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sec__inner">
+        <div class="models front">
+          <article class="card card--blue reveal">
+            <p class="card__tag">Modelo completo</p>
+            <h3>Três equações acopladas</h3>
+            <div class="eq eq--scroll">\[
+              \begin{cases}
+                \dfrac{dm(t)}{dt} = 4\pi\, r(t)\, D_g^{*} \left( C_{ar} - \dfrac{3\,m(t)}{4\pi\, r^{3}(t)\, H^{*}\, \Re\, T(t)} \right) \\[14pt]
+                \dfrac{dr(t)}{dt} = \dfrac{\zeta}{r(t)\,\eta} \\[14pt]
+                \dfrac{dT(t)}{dt} = \dfrac{3}{\rho_s\, c_{ps}\, r^{2}(t)} \left[ k'_a \big(T_a - T(t)\big) + L_v D'_w \big(\rho_v - \rho_{vr}\big) \right]
+              \end{cases}
+            \]</div>
+            <ul class="refs">
+              <li><b>Massa</b> difusão em superfícies esféricas, Pruppacher e Klett (2010)</li>
+              <li><b>Raio</b> evolução de gotículas salinas, Andreas (2005)</li>
+              <li><b>Temperatura</b> Pruppacher e Klett (1978)</li>
+            </ul>
+          </article>
+
+          <article class="card card--warm reveal">
+            <p class="card__tag">Modelo simplificado</p>
+            <h3>Raio e temperatura por decaimento exponencial</h3>
+            <div class="eq eq--scroll">\[
+              \begin{cases}
+                \dfrac{dm(t)}{dt} = 4\pi\, r(t)\, D_g^{*} \left( C_{ar} - \dfrac{3\,m(t)}{4\pi\, r^{3}(t)\, H^{*}\, \Re\, T(t)} \right) \\[14pt]
+                r(t) = r_{\mathrm{eq}} + \big(r_i - r_{\mathrm{eq}}\big) \exp\!\left(-\dfrac{t}{\tau_r}\right) \\[14pt]
+                T(t) = T_{\mathrm{eq}} + \big(T_i - T_{\mathrm{eq}}\big) \exp\!\left(-\dfrac{t}{\tau_T}\right)
+              \end{cases}
+            \]</div>
+            <ul class="refs">
+              <li><b>Massa</b> a mesma equação do modelo completo</li>
+              <li><b>Raio e temperatura</b> aproximação proposta por Andreas (1989)</li>
+            </ul>
+          </article>
+        </div>
+        <p class="note front reveal">
+          A temperatura chega ao equilíbrio muito antes do raio: é um problema com duas escalas de tempo,
+          o que torna a simulação delicada.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== A PESQUISA: UMA LINHA SÓ ===================== -->
+    <section class="sec" id="pesquisa" data-chapter="A pesquisa">
+      <div class="sec__inner">
+        <header class="sec__head front">
+          <div>
+            <p class="kicker reveal">A pesquisa · 2024 → 2026</p>
+            <h2 class="reveal">Três perguntas,<br>uma resposta</h2>
+            <p class="lead reveal">
+              Dois anos de iniciação científica e o TCC formam uma investigação só. Cada resposta abriu a pergunta seguinte.
+            </p>
+          </div>
+          <div class="drop-anchor drop-anchor--head" data-temp="0.6" data-mass="0.7"></div>
+        </header>
+
+        <ol class="journey front">
+          <!-- Pergunta 1 -->
+          <li class="journey__step">
+            <div class="journey__mark" aria-hidden="true"><span>1</span></div>
+            <div class="journey__body">
+              <p class="journey__tag mono reveal">Iniciação Científica · 2024/2025</p>
+              <h3 class="reveal">O raio e a temperatura mudam a conta?</h3>
+              <p class="reveal">A mesma gotícula foi simulada com o raio e a temperatura constantes e variando, para gotas de 30 a 500&nbsp;µm. A massa de CO<sub>2</sub> foi integrada pelo método de Euler implícito.</p>
+              <div class="cols front">
+                <div class="panel reveal">
+                  <h4>Queda na massa final de CO<sub>2</sub></h4>
+                  <p class="tbl__note">Raio e temperatura variando, contra os dois constantes.</p>
+                  <div class="bars">
+                    <div class="bar"><span class="bar__name">30 µm</span><span class="bar__track"><span class="bar__fill" style="--v: 83"></span></span><span class="bar__val">83 %</span></div>
+                    <div class="bar"><span class="bar__name">100 µm</span><span class="bar__track"><span class="bar__fill" style="--v: 10.6"></span></span><span class="bar__val">10,6 %</span></div>
+                    <div class="bar"><span class="bar__name">250 µm</span><span class="bar__track"><span class="bar__fill" style="--v: 5.5"></span></span><span class="bar__val">5,5 %</span></div>
+                    <div class="bar"><span class="bar__name">500 µm</span><span class="bar__track"><span class="bar__fill" style="--v: 0.9"></span></span><span class="bar__val">&lt; 1 %</span></div>
+                  </div>
+                </div>
+                <div class="charts reveal" data-viewer>
+                  <div class="charts__bar">
+                    <div class="seg" role="tablist" aria-label="Raio inicial">
+                      <button type="button" role="tab" class="is-on" aria-selected="true" data-src="site/media/ic1-massa-30.webp" data-alt="Massa de CO2 ao longo do tempo na gotícula de 30 µm, com raio e temperatura constantes ou variando." data-cap="Massa de CO<sub>2</sub> ao longo do tempo, gotícula de 30&nbsp;µm.">30&nbsp;µm</button>
+                      <button type="button" role="tab" aria-selected="false" data-src="site/media/ic1-massa-100.webp" data-alt="Massa de CO2 ao longo do tempo na gotícula de 100 µm." data-cap="Massa de CO<sub>2</sub> ao longo do tempo, gotícula de 100&nbsp;µm.">100</button>
+                      <button type="button" role="tab" aria-selected="false" data-src="site/media/ic1-massa-250.webp" data-alt="Massa de CO2 ao longo do tempo na gotícula de 250 µm." data-cap="Massa de CO<sub>2</sub> ao longo do tempo, gotícula de 250&nbsp;µm.">250</button>
+                      <button type="button" role="tab" aria-selected="false" data-src="site/media/ic1-massa-500.webp" data-alt="Massa de CO2 ao longo do tempo na gotícula de 500 µm." data-cap="Massa de CO<sub>2</sub> ao longo do tempo, gotícula de 500&nbsp;µm.">500</button>
+                    </div>
+                  </div>
+                  <figure class="plot plot--chart">
+                    <img src="site/media/ic1-massa-30.webp" width="1200" height="600" alt="Massa de CO2 ao longo do tempo na gotícula de 30 µm, com raio e temperatura constantes ou variando." loading="lazy">
+                  </figure>
+                  <p class="tbl__note viewer__cap">Massa de CO<sub>2</sub> ao longo do tempo, gotícula de 30&nbsp;µm.</p>
+                </div>
+              </div>
+              <p class="journey__answer reveal"><b>Sim, nas gotas pequenas.</b> Elas não podem ser tratadas com raio e temperatura constantes.</p>
+            </div>
+          </li>
+
+          <!-- Pergunta 2 -->
+          <li class="journey__step">
+            <div class="journey__mark" aria-hidden="true"><span>2</span></div>
+            <div class="journey__body">
+              <p class="journey__tag mono reveal">Iniciação Científica · 2025/2026</p>
+              <h3 class="reveal">Dá para resolver o sistema completo gastando menos?</h3>
+              <p class="reveal">Com o Runge-Kutta de 3ª ordem (SSPRK3) e controle por subpassos: a temperatura, que muda rápido, avança dez passos pequenos para cada passo do raio e da massa.</p>
+              <div class="cols front">
+                <div class="panel reveal">
+                  <h4>Tempo de execução, gotícula de 30 µm</h4>
+                  <p class="tbl__note">Sistema completo nos dois casos.</p>
+                  <div class="bars">
+                    <div class="bar bar--dim"><span class="bar__name">Passo fixo</span><span class="bar__track"><span class="bar__fill" style="--v: 100"></span></span><span class="bar__val">8,98 s</span></div>
+                    <div class="bar"><span class="bar__name">Subpassos</span><span class="bar__track"><span class="bar__fill" style="--v: 64.2"></span></span><span class="bar__val">5,76 s</span></div>
+                  </div>
+                  <div class="bars">
+                    <p class="bars__title">E dividir em dois processos com MPI?</p>
+                    <div class="bar"><span class="bar__name">Sequencial</span><span class="bar__track"><span class="bar__fill" style="--v: 88.4"></span></span><span class="bar__val">5,64 s</span></div>
+                    <div class="bar bar--dim"><span class="bar__name">MPI</span><span class="bar__track"><span class="bar__fill" style="--v: 100"></span></span><span class="bar__val">6,38 s</span></div>
+                  </div>
+                </div>
+                <div class="panel reveal">
+                  <h4>Subpassos</h4>
+                  <svg class="tl bigtl" data-tl="sub" viewBox="0 0 520 64" role="img" aria-label="Linha do tempo com quatro passos grandes, cada um dividido em subpassos"></svg>
+                  <ul class="gains">
+                    <li><span>Passo do raio e da massa</span><b>&Delta;t = 10<sup>−3</sup> s</b></li>
+                    <li class="g-p"><span>Passo da temperatura</span><b>&delta;t = 10<sup>−4</sup> s</b></li>
+                    <li><span>Subpassos</span><b>M = 10</b></li>
+                  </ul>
+                  <p class="tbl__note">No MPI, os dois processos precisam trocar dados a cada passo, e essa comunicação custa mais do que o cálculo.</p>
+                </div>
+              </div>
+              <p class="journey__answer reveal"><b>Sim, com subpassos.</b> Mesma precisão do sistema completo, com cerca de um terço a menos de tempo.</p>
+            </div>
+          </li>
+
+          <!-- Pergunta 3 -->
+          <li class="journey__step">
+            <div class="journey__mark" aria-hidden="true"><span>3</span></div>
+            <div class="journey__body">
+              <p class="journey__tag mono reveal">Trabalho de Conclusão de Curso · 2026</p>
+              <h3 class="reveal">Qual a melhor combinação de modelo e método?</h3>
+              <p class="reveal">Sete experimentos comparam o modelo completo e o simplificado, o Euler Explícito e o SSPRK3, e três formas de escolher o passo: fixo, subpassos e adaptativo com controlador PID.</p>
+              <div class="stats">
+                <div class="stat reveal">
+                  <b class="mono"><span data-count="22" data-suffix="×">22×</span></b>
+                  <p>Mais rápido que a referência: <span class="mono">0,414&nbsp;s</span> contra <span class="mono">9,041&nbsp;s</span>.</p>
+                </div>
+                <div class="stat reveal">
+                  <b class="mono"><span data-count="8702" data-sep=".">8.702</span></b>
+                  <p>Pontos no tempo com o PID, contra <span class="mono">265.950</span> com passo fixo.</p>
+                </div>
+                <div class="stat reveal">
+                  <b class="mono">1,69 × 10<sup>−5</sup></b>
+                  <p>Erro relativo na massa final de CO<sub>2</sub>.</p>
+                </div>
+                <div class="stat stat--warn reveal">
+                  <b class="mono"><span data-count="13.6" data-dec="1" data-suffix=" %">13,6 %</span></b>
+                  <p>Erro do modelo simplificado na mesma gota.</p>
+                </div>
+                <p class="stats__note reveal">Gotícula de 30&nbsp;µm.</p>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="answer front reveal">
+          <p class="kicker">A resposta</p>
+          <p class="answer__text">Manter a física completa e usar o <b>Euler Explícito com passo adaptativo PID</b>. É o mais rápido sem abrir mão da precisão.</p>
+        </div>
+        <p class="tbl__note front reveal" style="margin-top: 16px">Os números das duas iniciações científicas são dos relatórios delas. Os parâmetros de referência são os do TCC.</p>
+      </div>
+    </section>
+
+    <!-- ===================== COMO AVANÇAR NO TEMPO ===================== -->
+    <section class="sec" id="metodos" data-chapter="Como avançar no tempo">
+      <div class="sec__inner">
+        <header class="sec__head sec__head--wide front">
+          <p class="kicker reveal">Os métodos</p>
+          <h2 class="reveal">Como avançar<br>no tempo</h2>
+          <p class="lead reveal">
+            O Euler Explícito é testado contra uma solução de referência gerada pelo Runge-Kutta de 3ª ordem
+            com preservação de estabilidade forte (SSPRK3).
+          </p>
+        </header>
+
+        <div class="duo front">
+          <article class="card reveal">
+            <p class="card__tag">Euler Explícito (EE)</p>
+            <h3>Uma avaliação de \(\mathbf{F}\) por passo</h3>
+            <div class="eq eq--scroll">\[ \mathbf{y}_{n+1} = \mathbf{y}_n + \Delta t\, \mathbf{F}(t_n,\, \mathbf{y}_n) \]</div>
+          </article>
+          <article class="card reveal">
+            <p class="card__tag">SSPRK3 (referência)</p>
+            <h3>Três avaliações de \(\mathbf{F}\) por passo</h3>
+            <div class="eq eq--scroll">\[
+              \begin{aligned}
+                \mathbf{y}_{n+1} &= \mathbf{y}_n + \Delta t \left( \tfrac{1}{6}k_1 + \tfrac{1}{6}k_2 + \tfrac{2}{3}k_3 \right) \\[6pt]
+                k_1 &= \mathbf{F}(t_n,\; y_n) \\
+                k_2 &= \mathbf{F}\!\left(t_n + \Delta t,\; y_n + \Delta t\, k_1\right) \\
+                k_3 &= \mathbf{F}\!\left(t_n + \tfrac{\Delta t}{2},\; y_n + \tfrac{\Delta t}{4}k_1 + \tfrac{\Delta t}{4}k_2\right)
+              \end{aligned}
+            \]</div>
+          </article>
+        </div>
+
+        <div class="trio front">
+          <article class="card card--step reveal">
+            <svg class="tl" data-tl="fixo" viewBox="0 0 320 64" role="img" aria-label="Linha do tempo com passos de mesmo tamanho"></svg>
+            <p class="card__tag">Passo fixo</p>
+            <div class="eq">\[ \Delta t = \dfrac{\tau_f}{N} \]</div>
+            <p>O intervalo \([0, \tau_f]\) é dividido em \(N\) passos iguais.</p>
+          </article>
+          <article class="card card--step reveal">
+            <svg class="tl" data-tl="sub" viewBox="0 0 320 64" role="img" aria-label="Linha do tempo com passos grandes divididos em subpassos"></svg>
+            <p class="card__tag">Subpassos</p>
+            <div class="eq">\[ \delta t = \dfrac{\Delta t}{M} \]</div>
+            <p>Passo grande para as variáveis lentas (raio e massa) e passo pequeno para a rápida (temperatura).</p>
+          </article>
+          <article class="card card--step reveal">
+            <svg class="tl" data-tl="pid" viewBox="0 0 320 64" role="img" aria-label="Linha do tempo com passos de tamanho variável"></svg>
+            <p class="card__tag">Adaptativo (PID)</p>
+            <div class="eq">\[ e_n = \max(e_r,\, e_T,\, e_m) \]</div>
+            <p>O passo cresce ou encolhe conforme o erro estimado. A variável mais rápida controla o passo.</p>
+          </article>
+        </div>
+
+        <div class="pid front">
+          <div class="pid__text reveal">
+            <p class="card__tag">Controlador PID</p>
+            <div class="eq eq--scroll">\[
+              \Delta t_{n+1} =
+              {\color{#ff2e45}\left( \dfrac{e_{n-1}}{e_{n}} \right)^{k_P}}
+              {\color{#7fe0a8}\left( \dfrac{1}{e_{n}} \right)^{k_I}}
+              {\color{#8fd4ff}\left( \dfrac{e_{n-1}^{2}}{e_{n}\, e_{n-2}} \right)^{k_D}}
+              \Delta t_{n}
+            \]</div>
+            <ul class="gains">
+              <li class="g-p"><span>Proporcional</span><b>k<sub>P</sub> = 0,075</b></li>
+              <li class="g-i"><span>Integral</span><b>k<sub>I</sub> = 0,175</b></li>
+              <li class="g-d"><span>Derivativo</span><b>k<sub>D</sub> = 0,01</b></li>
+            </ul>
+          </div>
+          <figure class="plot reveal">
+            <img src="site/media/passo-adaptativo-pid.webp" width="2000" height="1200" alt="Gráficos da massa de CO2 e do passo de tempo ao longo da simulação nos experimentos E2 e E5: o passo varia várias ordens de grandeza." loading="lazy">
+            <figcaption>Massa de CO<sub>2</sub> e passo de tempo \(\Delta t\) ao longo da simulação, nos experimentos com PID (E2 e E5).</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= RESULTADOS ========================= -->
+    <section class="sec" id="numeros" data-chapter="Resultados">
+      <div class="sec__inner">
+        <header class="sec__head front">
+          <div>
+            <p class="kicker reveal">Resultados do TCC</p>
+            <h2 class="reveal">Os números<br>de perto</h2>
+            <p class="lead reveal">
+              Dois cenários: gotas pequenas, de 30&nbsp;µm, e grandes, de 500&nbsp;µm. A referência é o SCONTROL
+              (SSPRK3, passo fixo, sistema completo).
+            </p>
+          </div>
+          <div class="drop-anchor drop-anchor--head" data-temp="0.85" data-mass="0.85"></div>
+        </header>
+
+        <div class="goal__grid front">
+          <div class="tablewrap reveal">
+            <table class="tbl">
+              <thead>
+                <tr><th>Experimento</th><th>Método</th><th>Sistema</th><th class="unit">r<sub>i</sub> = 30&nbsp;µm</th><th class="unit">r<sub>i</sub> = 500&nbsp;µm</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SCONTROL</td><td>SSPRK3</td><td>Completo</td><td class="ok">ref.</td><td class="ok">ref.</td></tr>
+                <tr><td>ECONTROL</td><td>EE</td><td>Completo</td>
+                  <td class="ok"><svg viewBox="0 0 16 16" aria-label="acompanha a referência"><path d="M3 8.5l3.2 3.2L13 4.8" /></svg></td>
+                  <td class="ok"><svg viewBox="0 0 16 16" aria-label="acompanha a referência"><path d="M3 8.5l3.2 3.2L13 4.8" /></svg></td></tr>
+                <tr><td>E3</td><td>EE</td><td>Simplificado</td>
+                  <td class="bad"><svg viewBox="0 0 16 16" aria-label="se afasta da referência"><path d="M4 4l8 8M12 4l-8 8" /></svg></td>
+                  <td class="ok"><svg viewBox="0 0 16 16" aria-label="acompanha a referência"><path d="M3 8.5l3.2 3.2L13 4.8" /></svg></td></tr>
+              </tbody>
+            </table>
+            <p class="tbl__note">O Euler Explícito no sistema completo acompanha a referência nos dois raios. O modelo simplificado se afasta dela na gota de 30&nbsp;µm.</p>
+          </div>
+
+          <div class="charts reveal" data-viewer>
+            <div class="charts__bar">
+              <div class="seg" role="tablist" aria-label="Variável">
+                <button type="button" role="tab" class="is-on" aria-selected="true" data-var="raio">Raio</button>
+                <button type="button" role="tab" aria-selected="false" data-var="temperatura">Temperatura</button>
+                <button type="button" role="tab" aria-selected="false" data-var="massa">Massa</button>
+              </div>
+              <div class="seg" role="tablist" aria-label="Raio inicial">
+                <button type="button" role="tab" class="is-on" aria-selected="true" data-ri="30">30&nbsp;µm</button>
+                <button type="button" role="tab" aria-selected="false" data-ri="500">500&nbsp;µm</button>
+              </div>
+            </div>
+            <figure class="plot plot--chart">
+              <img src="site/media/grafico-raio-30.webp" width="2000" height="600" alt="Evolução do raio da gotícula de 30 µm nos experimentos SCONTROL, ECONTROL e E3." loading="lazy">
+            </figure>
+            <p class="tbl__note viewer__cap">Raio ao longo do tempo, gotícula de 30&nbsp;µm: SCONTROL, ECONTROL e E3.</p>
+          </div>
+        </div>
+
+        <div class="tablewrap front reveal" style="margin-top: 22px">
+          <table class="tbl tbl--wide">
+            <thead>
+              <tr>
+                <th rowspan="2">Experimento</th><th rowspan="2">Método</th><th rowspan="2">Passo</th><th rowspan="2">Sistema</th>
+                <th colspan="3" class="grp">r<sub>i</sub> = 30&nbsp;µm</th>
+                <th colspan="3" class="grp">r<sub>i</sub> = 500&nbsp;µm</th>
+              </tr>
+              <tr>
+                <th class="num">Pontos</th><th class="num">Tempo (s)</th><th class="num">\(\epsilon_f\)</th>
+                <th class="num">Pontos</th><th class="num">Tempo (s)</th><th class="num">\(\epsilon_f\)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>SCONTROL</td><td>SSPRK3</td><td>Fixo</td><td>Completo</td><td class="num">265.950</td><td class="num">9,041</td><td class="num dim">referência</td><td class="num">7.223</td><td class="num">0,544</td><td class="num dim">referência</td></tr>
+              <tr><td>ECONTROL</td><td>EE</td><td>Fixo</td><td>Completo</td><td class="num">265.950</td><td class="num">2,984</td><td class="num">4,94 × 10<sup>−7</sup></td><td class="num">7.223</td><td class="num">0,388</td><td class="num">1,23 × 10<sup>−7</sup></td></tr>
+              <tr><td>E1</td><td>EE</td><td>Subpassos</td><td>Completo</td><td class="num">26.597</td><td class="num">2,068</td><td class="num">5,08 × 10<sup>−6</sup></td><td class="num">724</td><td class="num">0,361</td><td class="num">1,41 × 10<sup>−5</sup></td></tr>
+              <tr class="hl"><td>E2</td><td>EE</td><td>PID</td><td>Completo</td><td class="num">8.702</td><td class="num">0,414</td><td class="num">1,69 × 10<sup>−5</sup></td><td class="num">107</td><td class="num">0,309</td><td class="num">9,06 × 10<sup>−6</sup></td></tr>
+              <tr><td>E3</td><td>EE</td><td>Fixo</td><td>Simplificado</td><td class="num">265.950</td><td class="num">1,395</td><td class="num warn">1,36 × 10<sup>−1</sup></td><td class="num">7.223</td><td class="num">0,348</td><td class="num">3,43 × 10<sup>−4</sup></td></tr>
+              <tr><td>E4</td><td>EE</td><td>Subpassos</td><td>Simplificado</td><td class="num">26.597</td><td class="num">0,443</td><td class="num warn">1,36 × 10<sup>−1</sup></td><td class="num">724</td><td class="num">0,312</td><td class="num">3,29 × 10<sup>−4</sup></td></tr>
+              <tr><td>E5</td><td>EE</td><td>PID</td><td>Simplificado</td><td class="num">10.052</td><td class="num">0,362</td><td class="num warn">1,36 × 10<sup>−1</sup></td><td class="num">96</td><td class="num">0,313</td><td class="num">3,45 × 10<sup>−4</sup></td></tr>
+            </tbody>
+          </table>
+          <p class="tbl__note">
+            Erro relativo na massa final de CO<sub>2</sub> em relação à referência:
+            \(\epsilon_f = \left| \dfrac{m_{\text{exp}}(\tau_f) - m_{\text{ref}}(\tau_f)}{m_{\text{ref}}(\tau_f)} \right|\).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= CONCLUSÃO ========================= -->
+    <section class="sec" id="conclusao" data-chapter="Conclusão">
+      <div class="sec__inner">
+        <header class="sec__head front">
+          <div>
+            <p class="kicker reveal">Conclusão</p>
+            <h2 class="reveal">Rápido e fiel<br>à física</h2>
+          </div>
+          <div class="drop-anchor drop-anchor--head drop-anchor--small" data-temp="1" data-mass="1"></div>
+        </header>
+        <ol class="takeaways front">
+          <li class="reveal"><span class="mono">01</span>
+            <p>O erro de truncamento do Euler Explícito no sistema completo é desprezível nos dois tamanhos de gota.</p></li>
+          <li class="reveal"><span class="mono">02</span>
+            <p>A perda de acurácia vem da simplificação da física. A forma exponencial compromete as gotas pequenas e só é segura para as grandes, onde a economia de tempo é pequena.</p></li>
+          <li class="reveal"><span class="mono">03</span>
+            <p>O passo adaptativo com PID concentra o esforço nos trechos em que a gotícula muda mais rápido e usou o menor número de passos em todos os casos.</p></li>
+          <li class="reveal is-key"><span class="mono">E2</span>
+            <p>A configuração recomendada é o experimento E2: Euler Explícito no sistema completo, com passo adaptativo PID, sem precisar simplificar a física do problema.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ========================= DEFESA ========================= -->
+    <section class="sec" id="defesa" data-chapter="Defesa">
+      <div class="sec__inner">
+        <header class="sec__head sec__head--wide front">
+          <p class="kicker reveal">A defesa</p>
+          <h2 class="reveal">Os slides</h2>
+          <p class="lead reveal">
+            A apresentação foi feita em Manim: cada slide é uma animação. Use as setas para avançar e voltar,
+            a barra de espaço para pausar e <kbd>F</kbd> para tela cheia.
+          </p>
+        </header>
+
+        <div class="player front reveal" id="player" tabindex="0" aria-label="Apresentação de slides" aria-roledescription="apresentação de slides">
+          <div class="player__screen" id="playerScreen">
+            <video class="player__video is-front" playsinline preload="none"></video>
+            <video class="player__video" playsinline preload="none"></video>
+            <button class="player__poster" id="playerPoster" type="button" aria-label="Iniciar a apresentação">
+              <img src="site/media/slide-capa.webp" width="1280" height="720" alt="" loading="lazy">
+              <span class="player__play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></span>
+            </button>
+            <p class="player__msg" id="playerMsg" hidden></p>
+          </div>
+          <div class="player__bar">
+            <div class="player__progress" id="playerProgress" aria-hidden="true"><span></span></div>
+            <div class="player__ctrl">
+              <button type="button" id="pPrev" aria-label="Slide anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg></button>
+              <button type="button" id="pToggle" aria-label="Reproduzir ou pausar"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M4.5 2.5v11l9-5.5z" /><path class="i-pause" d="M4.5 3v10M11.5 3v10" /></svg></button>
+              <button type="button" id="pNext" aria-label="Próximo slide"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg></button>
+              <span class="player__count mono" id="pCount" aria-live="polite">– / –</span>
+              <span class="player__chapter" id="pChapter"></span>
+              <button type="button" id="pFull" class="player__full" aria-label="Tela cheia"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" /></svg></button>
+            </div>
+          </div>
+          <div class="player__chapters" id="pChapters" role="group" aria-label="Capítulos"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= MATERIAIS ========================= -->
+    <section class="sec sec--last" id="materiais" data-chapter="Materiais">
+      <div class="sec__inner">
+        <header class="sec__head sec__head--wide front">
+          <p class="kicker reveal">Materiais</p>
+          <h2 class="reveal">Para ir mais fundo</h2>
+        </header>
+
+        <div class="mats front">
+          <div class="mats__posters">
+            <a class="mat mat--poster reveal" href="site/docs/poster-ic1.pdf">
+              <img src="site/media/poster-ic1.webp" width="1300" height="1949" alt="Pôster da iniciação científica 2024/2025, apresentado no CONCAP 2025." loading="lazy">
+              <span class="mat__k">Pôster · CONCAP 2025</span>
+              <span class="mat__t">Congresso Norte Capixaba de Pesquisa</span>
+              <small>1 a 3 de outubro de 2025, São Mateus, ES</small>
+            </a>
+            <a class="mat mat--poster reveal" href="site/docs/poster-ic2.pdf">
+              <img src="site/media/poster-ic2.webp" width="1300" height="1733" alt="Pôster da iniciação científica 2025/2026, para a Jornada de Iniciação Científica de 2026." loading="lazy">
+              <span class="mat__k">Pôster · Jornada de IC 2026</span>
+              <span class="mat__t">Semana do Conhecimento</span>
+              <small>19 de novembro de 2026, Campus São Mateus</small>
+            </a>
+          </div>
+          <div class="mats__grid">
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/TCC" rel="noopener"><span>TCC</span><small>Código, resultados e texto</small></a>
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/IC1/blob/main/relatorio/Emanuel_relat%C3%B3rio_final_2026_IC1.pdf" rel="noopener"><span>Relatório da IC 2024/2025</span><small>Métodos matemáticos para a equação de difusão</small></a>
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/IC2/blob/main/relatorio/Emanuel_relat%C3%B3rio_final_2026_IC2.pdf" rel="noopener"><span>Relatório da IC 2025/2026</span><small>Runge-Kutta com controle por subpassos</small></a>
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/IC1" rel="noopener"><span>Código da IC 2024/2025</span><small>Python</small></a>
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/IC2" rel="noopener"><span>Código da IC 2025/2026</span><small>Python e MPI</small></a>
+            <a class="link reveal" href="https://github.com/emanuelpintosampaio/TCC-apresentacao" rel="noopener"><span>Código dos slides</span><small>Manim e manim-slides</small></a>
+            <a class="link reveal" href="https://colab.research.google.com/github/emanuelpintosampaio/TCC-apresentacao/blob/main/rodar_no_colab.ipynb" rel="noopener"><span>Rodar no Colab</span><small>Gera os slides sem instalar nada</small></a>
+            <a class="link reveal" href="apresentacao(2).html"><span>Versão clássica</span><small>Os mesmos slides em reveal.js</small></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="drop-anchor drop-anchor--end" data-temp="1" data-mass="1"></div>
+    <div class="foot__inner front">
+      <p class="foot__title">O caminho do CO<sub>2</sub></p>
+      <button class="btn btn--ghost" type="button" data-to-top>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Voltar à superfície
+      </button>
+      <p>Emanuel Pinto Sampaio · Orientador: Prof. Dr. Iury Ângelo Gonçalves</p>
+      <p>Universidade Federal do Espírito Santo · Centro Universitário Norte do Espírito Santo<br>
+         Bacharelado em Matemática Industrial · São Mateus, ES · 2026</p>
+      <p class="foot__small">Gotícula em Three.js · equações em KaTeX · slides em Manim</p>
+    </div>
+  </footer>
+
+  <script defer src="site/vendor/katex/katex.min.js"></script>
+  <script defer src="site/vendor/katex/auto-render.min.js"></script>
+  <script defer src="site/vendor/lenis/lenis.min.js"></script>
+  <script type="module" src="site/js/main.js?v=3"></script>
+</body>
 </html>

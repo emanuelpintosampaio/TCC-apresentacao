@@ -4,3 +4,6 @@ manim/slides/
 __pycache__/
 *.pyc
 .venv/
+
+# Vídeos de terceiros usados só como referência visual do site
+referencias/

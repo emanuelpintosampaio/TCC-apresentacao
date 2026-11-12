@@ -1,0 +1,302 @@
+// A viagem da gotícula: o começo da página é uma tela fixa em que o scroll
+// comanda o vídeo da onda, a gotícula 3D, as legendas e o painel r/T/m.
+// Depois dela, o fundo vira o mar por dentro e a gotícula segue as seções.
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mobile = () => window.innerWidth <= 860;
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (t) => t * t * (3 - 2 * t);
+const ss = (a, b, x) => smooth(clamp01((x - a) / (b - a)));
+
+// Interpolação por trechos: P são os pontos do scroll, V os valores
+function piecewise(P, V, p, ease = (t) => t) {
+  if (p <= P[0]) return V[0];
+  for (let i = 1; i < P.length; i++) {
+    if (p <= P[i]) return lerp(V[i - 1], V[i], ease((p - P[i - 1]) / (P[i] - P[i - 1])));
+  }
+  return V[V.length - 1];
+}
+
+/* --------------------------- Tempo do vídeo ----------------------------- */
+// O arquivo começa em 129,5 s do vídeo original. A câmera lenta fica no spray.
+const VID_P = [0, 0.12, 0.30, 0.60, 0.80, 1];
+const VID_T = [0, 6.5, 10.0, 11.5, 15.5, 20.4];
+
+/* -------------------------- Caminho da gotícula ------------------------- */
+// x e y em frações da tela, r em frações do menor lado. A primeira chave
+// é a crista da onda (calculada a partir do vídeo, ver crest()).
+const PATH = [
+  // p      x      y      r      alpha
+  [0.12,  null,  null,  0.012, 0],
+  [0.16,  null,  null,  0.035, 1],
+  [0.26,  0.64,  0.30,  0.12,  1],
+  [0.34,  0.66,  0.42,  0.20,  1],
+  [0.58,  0.645, 0.44,  0.215, 1],
+  [0.66,  0.60,  0.56,  0.18,  1],
+  [0.792, 0.52,  1.30,  0.14,  1],
+  [0.80,  0.50, -0.30,  0.14,  1],   // corte: a câmera agora está debaixo d'água
+  [0.87,  0.50,  0.40,  0.15,  1],
+  [0.94,  0.50,  0.58,  0.135, 1],
+  [1.00,  0.50,  0.66,  0.12,  0],
+];
+const PATH_MOBILE_Y = (y) => (y === null ? null : y < 0 || y > 1 ? y : 0.2 + y * 0.52);
+const PATH_MOBILE_X = (x) => (x === null ? null : lerp(0.5, x, 0.35));
+
+/* -------------------------- Números do painel --------------------------- */
+// Referência SCONTROL do TCC, gotícula de 500 µm (legendas dos gráficos em
+// manim/imagens/). As curvas quase não mudam no começo e aceleram no fim.
+const REF = { tau: 0.72, r0: 500, r1: 499.987, T0: 19.80, T1: 19.37, m0: 6.500, m1: 6.560 };
+const fmt = (v, d) => v.toFixed(d).replace('.', ',');
+
+export function initStory({ onDrop } = {}) {
+  const stageEl = $('#viagem');
+  const video = $('#waveVideo');
+  const caps = $$('.cap', stageEl);
+  const hud = $('#hud');
+  const tag = $('#co2tag');
+  const bar = $('#stageBar');
+  const fallbackDrop = $('#stageDrop');
+  const deepVideo = $('#deepVideo');
+  const html = document.documentElement;
+  let drop = null;
+  let lenis = null;
+
+  /* ------------------------- Rolagem suave ------------------------------ */
+  if (!reduced && window.Lenis) {
+    lenis = new window.Lenis({ lerp: 0.09, wheelMultiplier: 0.95, touchMultiplier: 1.4 });
+    html.classList.add('has-lenis');
+    // links internos também passam pelo Lenis
+    $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length < 2) return;
+      const el = document.querySelector(id);
+      if (!el) return;
+      e.preventDefault();
+      lenis.scrollTo(el, { offset: id === '#viagem' ? 0 : -64, duration: 1.6 });
+      history.replaceState(null, '', id);
+    }));
+  }
+  const scrollTo = (target, opts) => (lenis ? lenis.scrollTo(target, opts) : (typeof target === 'number' ? window.scrollTo({ top: target, behavior: reduced ? 'auto' : 'smooth' }) : target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })));
+  $$('[data-to-top]').forEach((b) => b.addEventListener('click', () => scrollTo(0, { duration: 2.2 })));
+  $$('[data-dive]').forEach((b) => b.addEventListener('click', () => {
+    const y = stageEl.offsetTop + (stageEl.offsetHeight - window.innerHeight) * 0.33;
+    scrollTo(y, { duration: 2.4 });
+  }));
+
+  /* ---------------------- Vídeo da onda (scrub) ------------------------- */
+  let seeking = false;
+  let wantT = 0;
+  let videoOk = false;
+  function seekTo(t) {
+    wantT = t;
+    if (!videoOk || seeking) return;
+    if (Math.abs(video.currentTime - t) < 0.025) return;
+    seeking = true;
+    video.currentTime = t;
+  }
+  video.addEventListener('seeked', () => { seeking = false; if (Math.abs(video.currentTime - wantT) >= 0.025) seekTo(wantT); });
+
+  if (!reduced) {
+    // Baixa o vídeo inteiro antes: assim pular de um quadro para outro é imediato
+    const src = video.dataset.src;
+    fetch(src)
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); })
+      .then((blob) => { video.src = URL.createObjectURL(blob); })
+      .catch(() => { video.src = src; })
+      .finally(() => {
+        video.addEventListener('loadeddata', () => { videoOk = true; html.classList.add('wave-ready'); seekTo(wantT); }, { once: true });
+        video.load();
+      });
+    // iOS só libera a busca de quadros depois de um toque
+    window.addEventListener('touchstart', () => { video.play().then(() => video.pause()).catch(() => {}); }, { once: true, passive: true });
+  }
+
+  /* ------------------------- Mar por dentro ----------------------------- */
+  let deepOn = false;
+  function wakeDeep() {
+    if (deepOn || !deepVideo) return;
+    deepOn = true;
+    deepVideo.src = deepVideo.dataset.src;
+    deepVideo.play().catch(() => {});
+    drop?.setBackground(deepVideo);
+  }
+  // bolhas subindo
+  const bubbles = $('.deep__bubbles');
+  if (bubbles && !reduced) {
+    const n = mobile() ? 14 : 26;
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('i');
+      const size = 3 + Math.random() * 9;
+      b.style.cssText = `left:${Math.random() * 100}%;width:${size}px;height:${size}px;animation-duration:${9 + Math.random() * 14}s;animation-delay:${-Math.random() * 20}s;--sway:${(Math.random() * 2 - 1) * 40}px`;
+      bubbles.append(b);
+    }
+  }
+
+  /* ------------------------------ Trilho -------------------------------- */
+  const railName = $('#railName');
+  const railDots = $$('.rail__dots button');
+  const chapters = $$('[data-chapter]');
+  railDots.forEach((b, i) => b.addEventListener('click', () => {
+    const el = chapters[i];
+    if (el) scrollTo(el, { offset: i === 0 ? 0 : -64, duration: 1.6 });
+  }));
+  const chapterObs = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      const i = chapters.indexOf(en.target);
+      railDots.forEach((b, k) => b.classList.toggle('is-on', k === i));
+      if (i > 0 && railName) railName.textContent = en.target.dataset.chapter;
+      $$('.nav__links a').forEach((a) => a.classList.toggle('is-on', a.getAttribute('href') === `#${en.target.id}`));
+    }
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  chapters.forEach((c) => chapterObs.observe(c));
+
+  /* --------------------------- Crista da onda --------------------------- */
+  // Onde fica, na tela, o ponto da crista em que a gota nasce (no quadro do vídeo)
+  function crest() {
+    const W = window.innerWidth, H = window.innerHeight;
+    const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+    const s = Math.max(W / vw, H / vh);
+    const ox = (W - vw * s) / 2, oy = (H - vh * s) / 2;
+    const u = mobile() ? 0.5 : 0.56, v = 0.46;
+    return [(ox + u * vw * s) / W, (oy + v * vh * s) / H];
+  }
+
+  function dropAt(p) {
+    const W = window.innerWidth, H = window.innerHeight, mn = Math.min(W, H);
+    const [cxF, cyF] = crest();
+    const keys = PATH.map(([kp, x, y, r, a]) => {
+      let X = x ?? cxF, Y = y ?? cyF;
+      if (mobile()) { X = x === null ? cxF : PATH_MOBILE_X(x); Y = y === null ? cyF : PATH_MOBILE_Y(y); }
+      // nasce na crista e sobe um pouco
+      if (x === null && kp > 0.12) Y -= 0.04;
+      return [kp, X, Y, mobile() ? r * 1.45 : r, a];
+    });
+    const P = keys.map((k) => k[0]);
+    const pick = (j) => keys.map((k) => k[j]);
+    const x = piecewise(P, pick(1), p, smooth) * W;
+    const y = piecewise(P, pick(2), p, smooth) * H;
+    const r = piecewise(P, pick(3), p, smooth) * mn;
+    const alpha = p < 0.12 ? 0 : piecewise(P, pick(4), p);
+    return { x, y, r, alpha };
+  }
+
+  /* ------------------------------ Painel -------------------------------- */
+  const hudT = $('#hudT'), hudR = $('#hudR'), hudTemp = $('#hudTemp'), hudM = $('#hudM'), hudFill = $('#hudFill');
+  function updateHud(p) {
+    const s = clamp01((p - 0.16) / (0.79 - 0.16));
+    const g = Math.pow(s, 2.3);
+    hudT.textContent = fmt(REF.tau * s, 3);
+    hudR.textContent = fmt(lerp(REF.r0, REF.r1, g), 3);
+    hudTemp.textContent = fmt(lerp(REF.T0, REF.T1, g), 2);
+    hudM.textContent = fmt(lerp(REF.m0, REF.m1, g), 3);
+    hudFill.style.transform = `scaleX(${s.toFixed(4)})`;
+    hud.classList.toggle('is-on', p > 0.3 && p < 0.8);
+  }
+
+  /* ------------------------------ Quadro -------------------------------- */
+  let lastP = -1;
+  function frame() {
+    requestAnimationFrame(frame);
+    const rect = stageEl.getBoundingClientRect();
+    const H = window.innerHeight;
+    const total = Math.max(1, stageEl.offsetHeight - H);
+    const p = clamp01(-rect.top / total);
+    const inStage = rect.bottom > 1 && rect.top < H;
+
+    if (rect.bottom < H * 1.6) wakeDeep();
+    html.classList.toggle('in-stage', rect.bottom > 56);
+    // o mar escurece conforme se desce na página
+    const below = Math.max(0, -rect.bottom) / Math.max(1, document.documentElement.scrollHeight - stageEl.offsetHeight - H);
+    html.style.setProperty('--depth', clamp01(below).toFixed(3));
+
+    if (!inStage) {
+      if (lastP !== -2) { drop?.setStage(null); tag?.classList.remove('is-on'); lastP = -2; }
+      return;
+    }
+    if (railName) {
+      const phase = p < 0.12 ? 'A viagem' : p < 0.3 ? 'Na crista' : p < 0.6 ? 'No ar' : p < 0.8 ? 'A queda' : 'No oceano';
+      if (railName.textContent !== phase) railName.textContent = phase;
+    }
+
+    seekTo(piecewise(VID_P, VID_T, p));
+
+    // legendas
+    for (const c of caps) {
+      const a = +c.dataset.from, b = +c.dataset.to;
+      const v = (a <= 0 ? 1 : ss(a, a + 0.035, p)) * (b >= 1 ? 1 : 1 - ss(b - 0.035, b, p));
+      c.style.opacity = v.toFixed(3);
+      c.style.transform = `translate3d(0, ${((1 - v) * (p < a + 0.04 ? 30 : -30)).toFixed(1)}px, 0)`;
+      c.classList.toggle('is-on', v > 0.5);
+    }
+    updateHud(p);
+    if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
+
+    // gotícula
+    const d = dropAt(p);
+    const st = {
+      ...d,
+      temp: clamp01((p - 0.16) / 0.63),
+      absorb: ss(0.30, 0.58, p),
+      release: ss(0.82, 0.97, p),
+      air: ss(0.19, 0.29, p),
+      video,
+      gain: 0.62,
+    };
+    if (drop) drop.setStage(st);
+    if (fallbackDrop) {
+      fallbackDrop.style.transform = `translate3d(${d.x - d.r}px, ${d.y - d.r}px, 0)`;
+      fallbackDrop.style.width = fallbackDrop.style.height = `${(d.r * 2).toFixed(1)}px`;
+      fallbackDrop.style.opacity = d.alpha.toFixed(3);
+      fallbackDrop.style.setProperty('--fill', st.absorb.toFixed(3));
+    }
+
+    // rótulo "CO₂" preso numa molécula que ainda está no ar
+    if (tag && drop) {
+      const showTag = p > 0.22 && p < 0.42;
+      const m = showTag ? drop.nearestAirMolecule() : null;
+      if (m) { tag.style.transform = `translate3d(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`; }
+      tag.classList.toggle('is-on', !!m);
+    }
+    lastP = p;
+  }
+
+  if (!reduced) requestAnimationFrame(frame);
+  else {
+    // movimento reduzido: cada legenda vira um quadro fixo com a cena por trás
+    for (const c of caps) c.style.backgroundImage = `linear-gradient(180deg, rgba(1, 14, 26, 0.2), rgba(1, 14, 26, 0.85)), url("${c.dataset.poster}")`;
+    const watch = () => document.documentElement.classList.toggle('in-stage', stageEl.getBoundingClientRect().bottom > 56);
+    window.addEventListener('scroll', watch, { passive: true });
+    watch();
+    wakeDeep();
+  }
+
+  function raf(t) { lenis?.raf(t); requestAnimationFrame(raf); }
+  if (lenis) requestAnimationFrame(raf);
+
+  /* ---------------------------- Gotícula 3D ----------------------------- */
+  import('./droplet.js?v=3')
+    .then(({ initDroplet }) => {
+      drop = initDroplet({ canvas: $('#drop'), reducedMotion: reduced });
+      if (!drop) throw new Error('sem gotícula');
+      if (deepOn) drop.setBackground(deepVideo);
+      $$('.callout').forEach((c) => {
+        const on = () => { drop.setHighlight(c.dataset.hl); c.classList.add('is-on'); };
+        const off = () => { drop.setHighlight(null); c.classList.remove('is-on'); };
+        c.addEventListener('pointerenter', on);
+        c.addEventListener('pointerleave', off);
+        c.addEventListener('focus', on);
+        c.addEventListener('blur', off);
+      });
+      onDrop?.(drop);
+    })
+    .catch((err) => {
+      console.warn('Gotícula 3D indisponível:', err);
+      html.classList.add('no-webgl');
+    });
+
+  return { scrollTo };
+}
