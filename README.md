@@ -4,7 +4,7 @@ Slides da defesa do TCC *Avaliação de Simplificações do Modelo Físico e de 
 
 **Abrir a apresentação:** https://emanuelpintosampaio.github.io/TCC-apresentacao/
 
-Use as setas do teclado ou a barra de espaço para avançar os slides. O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
+Use as setas do teclado para avançar os slides. O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
 
 ## Rodar o código no Google Colab
 
