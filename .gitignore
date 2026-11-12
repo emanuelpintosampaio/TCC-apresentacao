@@ -3,3 +3,4 @@ manim/media/
 manim/slides/
 __pycache__/
 *.pyc
+.venv/

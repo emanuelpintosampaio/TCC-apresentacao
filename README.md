@@ -17,12 +17,20 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 | `imagens/` | Figuras e gráficos usados nos slides |
 | `manim.cfg` | Diz ao Manim que as imagens estão em `imagens/` |
 
-Para gerar os slides de novo, é preciso ter Manim, manim-slides, `mscene` e LaTeX instalados. De dentro da pasta `manim/`:
+Para gerar os slides de novo é preciso ter Manim, manim-slides, mscene e LaTeX. No Ubuntu:
 
 ```bash
-pip install manim manim-slides mscene
+sudo apt install texlive dvisvgm                         # LaTeX
+pip install manim "manim-slides[pyside6-full]" mscene
+mscene plugins
+```
+
+Depois, de dentro da pasta `manim/`:
+
+```bash
 manim -ql apresentacao.py Titulo Agenda Introducao              # qualidade baixa (a dos slides publicados)
-manim-slides convert Titulo Agenda Introducao apresentacao.html
+manim-slides convert Titulo Agenda Introducao apresentacao.html # gera o HTML
+manim-slides present Titulo Agenda Introducao                   # apresenta em tela cheia
 ```
 
 O vídeo do último slide (`apresentacao_assets/video.mp4`) não é gerado pelo Manim. É uma cópia comprimida (1080p, 30 quadros por segundo) do original, que tinha 607 MB e passava do limite de 100 MB por arquivo do GitHub.
