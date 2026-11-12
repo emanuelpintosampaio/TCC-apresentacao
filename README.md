@@ -25,20 +25,52 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 | `imagens/` | Figuras e gráficos usados nos slides |
 | `manim.cfg` | Diz ao Manim que as imagens estão em `imagens/` |
 
-Para gerar os slides no próprio computador, é preciso ter Manim, manim-slides, mscene e LaTeX. No Ubuntu:
+## Gerar os slides no computador
+
+É preciso ter Manim, manim-slides, mscene e LaTeX. O Manim tem que ser anterior à versão 0.22, porque o manim-slides 5.7 ainda não funciona com ela.
+
+### Windows
+
+1. **Baixe o repositório.** Em [github.com/emanuelpintosampaio/TCC-apresentacao](https://github.com/emanuelpintosampaio/TCC-apresentacao), clique em **Code → Download ZIP** e extraia. Se tiver o [Git](https://git-scm.com/download/win), pode usar `git clone https://github.com/emanuelpintosampaio/TCC-apresentacao.git`.
+2. **Instale o LaTeX (MiKTeX).** Baixe em [miktex.org/download](https://miktex.org/download) e instale. Na opção *Install missing packages on-the-fly*, escolha **Yes**, para ele baixar sozinho os pacotes que o Manim pedir.
+3. **Instale o uv** (gerenciador de Python). Abra o **PowerShell** e rode:
+
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+   Feche e abra o PowerShell de novo.
+4. **Instale as bibliotecas.** No PowerShell, entre na pasta do repositório e rode:
+
+   ```powershell
+   uv venv --python 3.12
+   .venv\Scripts\activate
+   uv pip install "manim<0.22" "manim-slides[pyside6-full]" mscene
+   mscene plugins
+   ```
+
+   Se o PowerShell disser que a execução de scripts está desabilitada, rode `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` e tente o `activate` de novo. Se a instalação pedir o Microsoft Visual C++, instale as [Build Tools do Visual Studio](https://visualstudio.microsoft.com/visual-cpp-build-tools/) com a opção *Desenvolvimento para desktop com C++*, abra um PowerShell novo e repita o `uv pip install`.
+
+Nas próximas vezes, basta entrar na pasta do repositório e rodar `.venv\Scripts\activate` antes dos comandos abaixo.
+
+### Linux (Ubuntu)
 
 ```bash
 sudo apt install texlive dvisvgm                         # LaTeX
-pip install "manim<0.22" "manim-slides[pyside6-full]" mscene   # o manim-slides 5.7 ainda não funciona com o Manim 0.22
+pip install "manim<0.22" "manim-slides[pyside6-full]" mscene
 mscene plugins
 ```
 
-Depois, de dentro da pasta `manim/`:
+### Gerar e apresentar
+
+De dentro da pasta `manim/` (no Windows e no Linux):
 
 ```bash
-manim -ql apresentacao.py Titulo Agenda Introducao              # qualidade baixa (a dos slides publicados)
+manim -ql apresentacao.py Titulo Agenda Introducao              # gera os vídeos (qualidade baixa, a dos slides publicados)
 manim-slides convert Titulo Agenda Introducao apresentacao.html # gera o HTML
 manim-slides present Titulo Agenda Introducao                   # apresenta em tela cheia
 ```
+
+Para qualidade alta, troque `-ql` por `-qh`. Na primeira vez no Windows, o MiKTeX baixa os pacotes de LaTeX que faltarem, então demora mais.
 
 O vídeo do último slide (`apresentacao_assets/video.mp4`) não é gerado pelo Manim. É uma cópia comprimida (1080p, 30 quadros por segundo) do original, que tinha 607 MB e passava do limite de 100 MB por arquivo do GitHub.
