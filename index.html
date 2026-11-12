@@ -17,7 +17,7 @@
   <link rel="preload" href="site/vendor/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="site/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="site/vendor/lenis/lenis.css">
-  <link rel="stylesheet" href="site/css/style.css?v=4">
+  <link rel="stylesheet" href="site/css/style.css?v=5">
 </head>
 <body>
   <a class="skip" href="#impacto">Pular para o conteúdo</a>
@@ -96,7 +96,7 @@
                 Ver a defesa
               </button>
             </div>
-            <p class="cap__byline">Emanuel Pinto Sampaio · Orientador: Prof. Dr. Iury Ângelo Gonçalves · São Mateus, ES · 2026</p>
+            <p class="cap__byline">Emanuel Pinto Sampaio · orientação do Prof. Dr. Iury Ângelo Gonçalves · São Mateus, ES · 2026</p>
           </article>
 
           <article class="cap" data-from="0.13" data-to="0.29" data-poster="site/media/story-2.webp">
@@ -108,19 +108,19 @@
           <article class="cap" data-from="0.31" data-to="0.595" data-poster="site/media/story-3.webp">
             <p class="kicker"><b>02</b> No ar</p>
             <h2 class="cap__title">Ela absorve CO<sub>2</sub></h2>
-            <p>Suspensa no ar, a gotícula troca gás com a atmosfera: o CO<sub>2</sub> atravessa a superfície dela por difusão. Ao mesmo tempo, ela evapora e muda de temperatura, e isso muda quanto gás ela consegue guardar.</p>
+            <p>Suspensa no ar, a gotícula troca gás com a atmosfera, e o CO<sub>2</sub> atravessa a superfície dela por difusão. Ao mesmo tempo, ela evapora e muda de temperatura, e isso muda quanto gás ela consegue guardar.</p>
           </article>
 
           <article class="cap" data-from="0.61" data-to="0.79" data-poster="site/media/story-4.webp">
             <p class="kicker"><b>03</b> A queda</p>
             <h2 class="cap__title">Depois de \(\tau_f\), ela cai</h2>
-            <p>O tempo de vida da gotícula no ar depende da altura da onda e da velocidade com que ela cai: \(\tau_f = \dfrac{H_s}{2\,U_f}\).</p>
+            <p>O tempo de vida \(\tau_f = \dfrac{H_s}{2\,U_f}\) depende da altura da onda e da velocidade com que a gotícula cai.</p>
           </article>
 
           <article class="cap" data-from="0.81" data-to="1" data-poster="site/media/story-5.webp">
             <p class="kicker"><b>04</b> No oceano</p>
             <h2 class="cap__title">E leva o CO<sub>2</sub> para o mar</h2>
-            <p>Ao voltar, a gotícula carrega o gás que absorveu: CO<sub>2</sub> que sai da atmosfera e entra no oceano. Um mecanismo minúsculo, que se repete a cada onda que quebra.</p>
+            <p>Ao voltar, a gotícula carrega o gás que absorveu. É CO<sub>2</sub> que sai da atmosfera e entra no oceano. Um mecanismo minúsculo, que se repete a cada onda que quebra.</p>
           </article>
         </div>
 
@@ -165,7 +165,7 @@
             <div>
               <span class="impact__n mono">01</span>
               <h3>O CO<sub>2</sub> aquece a Terra</h3>
-              <p>Ele é um dos gases mais importantes da atmosfera: a emissão em massa aumenta a retenção de calor na troposfera.</p>
+              <p>Ele é um dos gases mais importantes da atmosfera, e a emissão em massa aumenta a retenção de calor na troposfera.</p>
             </div>
           </article>
           <article class="impact__item reveal">
@@ -181,7 +181,7 @@
             <div>
               <span class="impact__n mono">03</span>
               <h3>Ondas abrem atalhos</h3>
-              <p>A quebra das ondas cria duas rotas de pequena escala: bolhas que afundam e gotículas que voam. Juntas, elas podem contribuir para o balanço global de CO<sub>2</sub> entre oceano e atmosfera.</p>
+              <p>A quebra das ondas cria duas rotas de pequena escala, as bolhas que afundam e as gotículas que voam. Juntas, elas podem contribuir para o balanço global de CO<sub>2</sub> entre oceano e atmosfera.</p>
             </div>
           </article>
         </div>
@@ -189,7 +189,7 @@
         <div class="bigquote front reveal">
           <p class="kicker">O problema</p>
           <p class="bigquote__text">Para prever o tempo e o clima, os modelos precisam desse processo. Mas cada gotícula é um sistema de equações acopladas, e calcular isso custa caro.</p>
-          <p class="bigquote__sub">Por isso a pergunta desta pesquisa: dá para simplificar a física ou escolher um método numérico mais rápido sem perder precisão?</p>
+          <p class="bigquote__sub">Por isso a pergunta desta pesquisa é se dá para simplificar a física ou escolher um método numérico mais rápido sem perder precisão?</p>
         </div>
       </div>
     </section>
@@ -201,7 +201,7 @@
           <p class="kicker reveal">A física de uma gotícula</p>
           <h2 class="reveal">Três números<br>contam tudo</h2>
           <p class="lead reveal">
-            A gotícula é tratada como uma esfera. A cada instante, o estado dela cabe em um vetor:
+            A gotícula é tratada como uma esfera. A cada instante, o estado dela cabe em um vetor.
           </p>
           <div class="eq eq--big reveal">\[ \mathbf{y}(t) = \big[\, r(t),\; T(t),\; m(t) \,\big]^{\top} \]</div>
           <p class="reveal">
@@ -214,13 +214,13 @@
         <div class="stage-ring">
           <div class="drop-anchor drop-anchor--ring" data-temp="0.4" data-mass="0.55"></div>
           <button class="callout callout--r front reveal" type="button" data-hl="r">
-            <b>\(r(t)\)</b><span>raio: ela evapora e encolhe</span>
+            <b>\(r(t)\)</b><span>o raio, que encolhe ao evaporar</span>
           </button>
           <button class="callout callout--t front reveal" type="button" data-hl="t">
-            <b>\(T(t)\)</b><span>temperatura: muda muito rápido</span>
+            <b>\(T(t)\)</b><span>a temperatura, que muda muito rápido</span>
           </button>
           <button class="callout callout--m front reveal" type="button" data-hl="m">
-            <b>\(m(t)\)</b><span>massa de CO<sub>2</sub> dentro dela</span>
+            <b>\(m(t)\)</b><span>a massa de CO<sub>2</sub> dentro dela</span>
           </button>
         </div>
       </div>
@@ -261,7 +261,7 @@
           </article>
         </div>
         <p class="note front reveal">
-          A temperatura chega ao equilíbrio muito antes do raio: é um problema com duas escalas de tempo,
+          A temperatura chega ao equilíbrio muito antes do raio. São duas escalas de tempo no mesmo problema,
           o que torna a simulação delicada.
         </p>
       </div>
@@ -325,7 +325,7 @@
             <div class="journey__body">
               <p class="journey__tag mono reveal">Iniciação Científica · 2025/2026</p>
               <h3 class="reveal">Dá para resolver o sistema completo gastando menos?</h3>
-              <p class="reveal">Com o Runge-Kutta de 3ª ordem (SSPRK3) e controle por subpassos: a temperatura, que muda rápido, avança dez passos pequenos para cada passo do raio e da massa.</p>
+              <p class="reveal">Com o Runge-Kutta de 3ª ordem (SSPRK3) e controle por subpassos. A temperatura, que muda rápido, avança dez passos pequenos para cada passo do raio e da massa.</p>
               <div class="cols front">
                 <div class="panel reveal">
                   <h4>Tempo de execução, gotícula de 30 µm</h4>
@@ -361,11 +361,11 @@
             <div class="journey__body">
               <p class="journey__tag mono reveal">Trabalho de Conclusão de Curso · 2026</p>
               <h3 class="reveal">Qual a melhor combinação de modelo e método?</h3>
-              <p class="reveal">Sete experimentos comparam o modelo completo e o simplificado, o Euler Explícito e o SSPRK3, e três formas de escolher o passo: fixo, subpassos e adaptativo com controlador PID.</p>
+              <p class="reveal">Sete experimentos comparam o modelo completo e o simplificado, o Euler Explícito e o SSPRK3, e três formas de escolher o passo (fixo, subpassos e adaptativo com controlador PID).</p>
               <div class="stats">
                 <div class="stat reveal">
                   <b class="mono"><span data-count="22" data-suffix="×">22×</span></b>
-                  <p>Mais rápido que a referência: <span class="mono">0,414&nbsp;s</span> contra <span class="mono">9,041&nbsp;s</span>.</p>
+                  <p>Mais rápido que a referência, <span class="mono">0,414&nbsp;s</span> contra <span class="mono">9,041&nbsp;s</span>.</p>
                 </div>
                 <div class="stat reveal">
                   <b class="mono"><span data-count="8702" data-sep=".">8.702</span></b>
@@ -463,7 +463,7 @@
             </ul>
           </div>
           <figure class="plot reveal">
-            <img src="site/media/passo-adaptativo-pid.webp" width="2000" height="1200" alt="Gráficos da massa de CO2 e do passo de tempo ao longo da simulação nos experimentos E2 e E5: o passo varia várias ordens de grandeza." loading="lazy">
+            <img src="site/media/passo-adaptativo-pid.webp" width="2000" height="1200" alt="Gráficos da massa de CO2 e do passo de tempo ao longo da simulação nos experimentos E2 e E5. O passo varia várias ordens de grandeza." loading="lazy">
             <figcaption>Massa de CO<sub>2</sub> e passo de tempo \(\Delta t\) ao longo da simulação, nos experimentos com PID (E2 e E5).</figcaption>
           </figure>
         </div>
@@ -478,7 +478,7 @@
             <p class="kicker reveal">Resultados do TCC</p>
             <h2 class="reveal">Os números<br>de perto</h2>
             <p class="lead reveal">
-              Dois cenários: gotas pequenas, de 30&nbsp;µm, e grandes, de 500&nbsp;µm. A referência é o SCONTROL
+              São dois cenários, gotas pequenas de 30&nbsp;µm e grandes de 500&nbsp;µm. A referência é o SCONTROL
               (SSPRK3, passo fixo, sistema completo).
             </p>
           </div>
@@ -519,7 +519,7 @@
             <figure class="plot plot--chart">
               <img src="site/media/grafico-raio-30.webp" width="2000" height="600" alt="Evolução do raio da gotícula de 30 µm nos experimentos SCONTROL, ECONTROL e E3." loading="lazy">
             </figure>
-            <p class="tbl__note viewer__cap">Raio ao longo do tempo, gotícula de 30&nbsp;µm: SCONTROL, ECONTROL e E3.</p>
+            <p class="tbl__note viewer__cap">Raio ao longo do tempo na gotícula de 30&nbsp;µm, nos experimentos SCONTROL, ECONTROL e E3.</p>
           </div>
         </div>
 
@@ -547,7 +547,7 @@
             </tbody>
           </table>
           <p class="tbl__note">
-            Erro relativo na massa final de CO<sub>2</sub> em relação à referência:
+            O erro relativo na massa final de CO<sub>2</sub> em relação à referência é
             \(\epsilon_f = \left| \dfrac{m_{\text{exp}}(\tau_f) - m_{\text{ref}}(\tau_f)}{m_{\text{ref}}(\tau_f)} \right|\).
           </p>
         </div>
@@ -572,7 +572,7 @@
           <li class="reveal"><span class="mono">03</span>
             <p>O passo adaptativo com PID concentra o esforço nos trechos em que a gotícula muda mais rápido e usou o menor número de passos em todos os casos.</p></li>
           <li class="reveal is-key"><span class="mono">E2</span>
-            <p>A configuração recomendada é o experimento E2: Euler Explícito no sistema completo, com passo adaptativo PID, sem precisar simplificar a física do problema.</p></li>
+            <p>A configuração recomendada é o experimento E2, com Euler Explícito no sistema completo e passo adaptativo PID, sem precisar simplificar a física do problema.</p></li>
         </ol>
       </div>
     </section>
@@ -584,7 +584,7 @@
           <p class="kicker reveal">A defesa</p>
           <h2 class="reveal">Os slides</h2>
           <p class="lead reveal">
-            A apresentação foi feita em Manim: cada slide é uma animação. Use as setas para avançar e voltar,
+            A apresentação foi feita em Manim, e cada slide é uma animação. Use as setas para avançar e voltar,
             a barra de espaço para pausar e <kbd>F</kbd> para tela cheia.
           </p>
         </header>
@@ -605,7 +605,7 @@
               <button type="button" id="pPrev" aria-label="Slide anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" /></svg></button>
               <button type="button" id="pToggle" aria-label="Reproduzir ou pausar"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M4.5 2.5v11l9-5.5z" /><path class="i-pause" d="M4.5 3v10M11.5 3v10" /></svg></button>
               <button type="button" id="pNext" aria-label="Próximo slide"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" /></svg></button>
-              <span class="player__count mono" id="pCount" aria-live="polite">– / –</span>
+              <span class="player__count mono" id="pCount" aria-live="polite">0 / 0</span>
               <span class="player__chapter" id="pChapter"></span>
               <button type="button" id="pFull" class="player__full" aria-label="Tela cheia"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" /></svg></button>
             </div>
@@ -661,7 +661,7 @@
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Voltar à superfície
       </button>
-      <p>Emanuel Pinto Sampaio · Orientador: Prof. Dr. Iury Ângelo Gonçalves</p>
+      <p>Emanuel Pinto Sampaio · orientação do Prof. Dr. Iury Ângelo Gonçalves</p>
       <p>Universidade Federal do Espírito Santo · Centro Universitário Norte do Espírito Santo<br>
          Bacharelado em Matemática Industrial · São Mateus, ES · 2026</p>
       <p class="foot__small">Gotícula em Three.js · equações em KaTeX · slides em Manim</p>
@@ -671,6 +671,6 @@
   <script defer src="site/vendor/katex/katex.min.js"></script>
   <script defer src="site/vendor/katex/auto-render.min.js"></script>
   <script defer src="site/vendor/lenis/lenis.min.js"></script>
-  <script type="module" src="site/js/main.js?v=3"></script>
+  <script type="module" src="site/js/main.js?v=5"></script>
 </body>
 </html>

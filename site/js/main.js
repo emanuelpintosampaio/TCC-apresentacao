@@ -1,8 +1,8 @@
 // Interações da página: equações, linhas do tempo, revelação ao rolar,
 // abas dos gráficos, contadores e o player. A viagem da gotícula fica em story.js.
 
-import { initPlayer } from './player.js?v=3';
-import { initStory } from './story.js?v=3';
+import { initPlayer } from './player.js?v=5';
+import { initStory } from './story.js?v=5';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s, el = document) => el.querySelector(s);
@@ -117,7 +117,7 @@ for (const box of $$('[data-viewer]')) {
       const names = { raio: 'Raio', temperatura: 'Temperatura', massa: 'Massa de CO<sub>2</sub>' };
       const alts = { raio: 'do raio', temperatura: 'da temperatura', massa: 'da massa de CO2' };
       alt = `Evolução ${alts[v]} da gotícula de ${r} µm nos experimentos SCONTROL, ECONTROL e E3.`;
-      capHtml = `${names[v]} ao longo do tempo, gotícula de ${r}&nbsp;µm: SCONTROL, ECONTROL e E3.`;
+      capHtml = `${names[v]} ao longo do tempo na gotícula de ${r}&nbsp;µm, nos experimentos SCONTROL, ECONTROL e E3.`;
     } else {
       const b = $('.seg button.is-on', box);
       src = b.dataset.src; alt = b.dataset.alt; capHtml = b.dataset.cap;

@@ -4,7 +4,7 @@ Slides da defesa do TCC *Avaliação de Simplificações do Modelo Físico e de 
 
 **Abrir o site:** https://emanuelpintosampaio.github.io/TCC-apresentacao/
 
-O site é uma página só, contada como uma história. No começo, o scroll comanda o vídeo de uma onda: uma gotícula sai da crista, absorve CO₂ do ar e volta para o mar levando o gás. Depois vêm o impacto, a física da gotícula, a pesquisa (as duas iniciações científicas e o TCC como uma investigação só), os métodos, os resultados, a conclusão, os slides da defesa e os materiais. No player dos slides, use as setas para avançar e voltar, a barra de espaço para pausar e `F` para tela cheia. Os mesmos slides continuam disponíveis na [versão clássica em reveal.js](https://emanuelpintosampaio.github.io/TCC-apresentacao/apresentacao(2).html). O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
+O site é uma página só, contada como uma história. No começo, o scroll comanda o vídeo de uma onda, e uma gotícula sai da crista, absorve CO₂ do ar e volta para o mar levando o gás. Depois vêm o impacto, a física da gotícula, a pesquisa (as duas iniciações científicas e o TCC como uma investigação só), os métodos, os resultados, a conclusão, os slides da defesa e os materiais. No player dos slides, use as setas para avançar e voltar, a barra de espaço para pausar e `F` para tela cheia. Os mesmos slides continuam disponíveis na [versão clássica em reveal.js](https://emanuelpintosampaio.github.io/TCC-apresentacao/apresentacao(2).html). O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
 
 ## O site
 
@@ -22,7 +22,7 @@ O site é uma página só, contada como uma história. No começo, o scroll coma
 | `site/docs/` | Os pôsteres das duas iniciações científicas em PDF |
 | `site/vendor/` | Three.js, KaTeX, Lenis (rolagem suave) e fontes, copiados para cá para o site não depender de CDN |
 
-Para ver o site no computador, rode na raiz do repositório e abra http://localhost:8000:
+Para ver o site no computador, rode na raiz do repositório o comando abaixo e abra http://localhost:8000
 
 ```bash
 python3 -m http.server
@@ -32,7 +32,7 @@ Abrir o `index.html` direto pelo gerenciador de arquivos não funciona, porque o
 
 O player lê a lista de vídeos do próprio `apresentacao(2).html`, então gerar os slides de novo com o manim-slides já atualiza o player. Se a quantidade ou a ordem dos slides mudar, ajuste os capítulos na lista `CHAPTERS`, no começo de `site/js/player.js`. Na viagem do começo, o tempo do vídeo e o caminho da gotícula ficam nas tabelas `VID_P`/`VID_T` e `PATH`, no começo de `site/js/story.js`, e os números do painel em `REF`. No resto da página, a posição e o tamanho da gotícula vêm dos elementos `.drop-anchor`.
 
-Os vídeos `site/media/wave-scrub.mp4` (a onda) e `deep-loop.mp4` (o fundo do mar, em loop) são trechos de `apresentacao_assets/video.mp4`. O da onda tem um quadro-chave a cada 3 quadros para poder ser "rolado" sem travar:
+Os vídeos `site/media/wave-scrub.mp4` (a onda) e `deep-loop.mp4` (o fundo do mar, em loop) são trechos de `apresentacao_assets/video.mp4`. O da onda tem um quadro-chave a cada 3 quadros para poder ser "rolado" sem travar.
 
 ```bash
 ffmpeg -ss 129.5 -t 20.5 -i apresentacao_assets/video.mp4 -an -vf "fps=15,scale=1280:720" -c:v libx264 -crf 31 -g 3 -bf 0 -pix_fmt yuv420p -movflags +faststart site/media/wave-scrub.mp4

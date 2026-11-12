@@ -278,7 +278,7 @@ export function initStory({ onDrop } = {}) {
   if (lenis) requestAnimationFrame(raf);
 
   /* ---------------------------- Gotícula 3D ----------------------------- */
-  import('./droplet.js?v=3')
+  import('./droplet.js?v=5')
     .then(({ initDroplet }) => {
       drop = initDroplet({ canvas: $('#drop'), reducedMotion: reduced });
       if (!drop) throw new Error('sem gotícula');

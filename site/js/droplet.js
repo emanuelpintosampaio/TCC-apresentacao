@@ -156,7 +156,7 @@ const ss = (a, b, x) => smooth(clamp01((x - a) / (b - a)));
 // Bolas e varetas: carbono preto no meio, oxigênios vermelhos, ligações duplas.
 const C_COLOR = new THREE.Color(0x141414);
 const O_COLOR = new THREE.Color(0xd4101e);   // vermelho puro, sem puxar para o laranja
-const C_R = 0.66, O_R = 0.6, BOND = 1.95;   // raio do C, raio do O, distância C–O
+const C_R = 0.66, O_R = 0.6, BOND = 1.95;   // raio do C, raio do O, distância entre C e O
 const STICK_R = 0.11, STICK_GAP = 0.2;      // espessura e afastamento das duas varetas
 
 export function initDroplet({ canvas, reducedMotion = false }) {
@@ -515,7 +515,7 @@ export function initDroplet({ canvas, reducedMotion = false }) {
         const d = BOND * scale * sign;
         m4.compose(v3.set(x + axisX.x * d, -y + axisX.y * d, z + axisX.z * d), q, sc.setScalar(scale * O_R));
         atoms.setMatrixAt(i * 3 + slot, m4);
-        // ligação dupla: duas varetas paralelas no meio do caminho C–O
+        // ligação dupla: duas varetas paralelas no meio do caminho entre C e O
         const h = d / 2;
         for (const [k2, side] of [[0, 1], [1, -1]]) {
           m4.compose(

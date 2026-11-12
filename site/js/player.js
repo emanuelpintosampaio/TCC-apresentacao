@@ -95,7 +95,7 @@ export function initPlayer(root) {
 
   function updateUI() {
     const n = slides.length;
-    count.textContent = n ? `${Math.max(idx, 0) + 1} / ${n}` : '– / –';
+    count.textContent = n ? `${Math.max(idx, 0) + 1} / ${n}` : '0 / 0';
     progress.firstElementChild.style.width = n > 1 && idx >= 0 ? `${(idx / (n - 1)) * 100}%` : '0%';
     const k = currentChapter();
     chapterLabel.textContent = k >= 0 ? chapters[k].title : '';
