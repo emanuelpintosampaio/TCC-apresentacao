@@ -29,6 +29,14 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 
 É preciso ter Manim, manim-slides, mscene e LaTeX. O Manim tem que ser anterior à versão 0.22, porque o manim-slides 5.7 ainda não funciona com ela.
 
+### Linux (Ubuntu)
+
+```bash
+sudo apt install texlive dvisvgm                         # LaTeX
+pip install "manim<0.22" "manim-slides[pyside6-full]" mscene
+mscene plugins
+```
+
 ### Windows
 
 1. **Baixe o repositório.** Em [github.com/emanuelpintosampaio/TCC-apresentacao](https://github.com/emanuelpintosampaio/TCC-apresentacao), clique em **Code → Download ZIP** e extraia. Se tiver o [Git](https://git-scm.com/download/win), pode usar `git clone https://github.com/emanuelpintosampaio/TCC-apresentacao.git`.
@@ -53,13 +61,6 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 
 Nas próximas vezes, basta entrar na pasta do repositório e rodar `.venv\Scripts\activate` antes dos comandos abaixo.
 
-### Linux (Ubuntu)
-
-```bash
-sudo apt install texlive dvisvgm                         # LaTeX
-pip install "manim<0.22" "manim-slides[pyside6-full]" mscene
-mscene plugins
-```
 
 ### Gerar e apresentar
 
