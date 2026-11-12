@@ -6,6 +6,14 @@ Slides da defesa do TCC *Avaliação de Simplificações do Modelo Físico e de 
 
 Use as setas do teclado ou a barra de espaço para avançar os slides. O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
 
+## Rodar o código no Google Colab
+
+Para gerar os slides a partir do código sem instalar nada no computador, abra o notebook no Colab e rode as três células:
+
+[![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/emanuelpintosampaio/TCC-apresentacao/blob/main/rodar_no_colab.ipynb)
+
+O notebook instala o Manim, o LaTeX, o manim-slides e o mscene, gera os slides e mostra a apresentação dentro do próprio Colab. A instalação leva uns 5 minutos, e a geração dos slides, de 10 a 20 minutos.
+
 ## Código em Manim
 
 Os slides foram feitos com [Manim Community](https://www.manim.community/) e [manim-slides](https://github.com/jeertmans/manim-slides). O código está na pasta `manim/`:
@@ -17,11 +25,11 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 | `imagens/` | Figuras e gráficos usados nos slides |
 | `manim.cfg` | Diz ao Manim que as imagens estão em `imagens/` |
 
-Para gerar os slides de novo é preciso ter Manim, manim-slides, mscene e LaTeX. No Ubuntu:
+Para gerar os slides no próprio computador, é preciso ter Manim, manim-slides, mscene e LaTeX. No Ubuntu:
 
 ```bash
 sudo apt install texlive dvisvgm                         # LaTeX
-pip install manim "manim-slides[pyside6-full]" mscene
+pip install "manim<0.22" "manim-slides[pyside6-full]" mscene   # o manim-slides 5.7 ainda não funciona com o Manim 0.22
 mscene plugins
 ```
 
