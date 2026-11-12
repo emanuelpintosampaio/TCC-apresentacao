@@ -14,13 +14,8 @@ Os slides foram feitos com [Manim Community](https://www.manim.community/) e [ma
 |---|---|
 | `apresentacao.py` | Código da apresentação publicada: cenas `Titulo`, `Agenda` e `Introducao` (esta última tem todo o restante, com as seções marcadas por comentários) |
 | `bbbb.py` | Pseudocódigo do algoritmo multiescala, exibido num dos slides (não é Python executável) |
-| `ccc.py` | Pseudocódigo do algoritmo adaptativo com PID (não entrou na versão final) |
 | `imagens/` | Figuras e gráficos usados nos slides |
 | `manim.cfg` | Diz ao Manim que as imagens estão em `imagens/` |
-| `apresentacao_versao_anterior.py` | Versão anterior do `apresentacao.py` |
-| `tcc_10_cenas.py` | Outra versão, com a apresentação dividida em 10 cenas |
-| `subciclagem.py` | Cena avulsa com o diagrama do controle por subpassos (processo rápido × lento) |
-| `introducao_teste.py` | Teste de uma parte da introdução |
 
 Para gerar os slides de novo, é preciso ter Manim, manim-slides, `mscene` e LaTeX instalados. De dentro da pasta `manim/`:
 
