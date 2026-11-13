@@ -17,7 +17,7 @@
   <link rel="preload" href="site/vendor/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="site/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="site/vendor/lenis/lenis.css">
-  <link rel="stylesheet" href="site/css/style.css?v=7">
+  <link rel="stylesheet" href="site/css/style.css?v=15">
 </head>
 <body>
   <a class="skip" href="#impacto">Pular para o conteúdo</a>
@@ -212,7 +212,63 @@
         </div>
 
         <div class="stage-ring">
-          <div class="drop-anchor drop-anchor--ring" data-temp="0.4" data-mass="0.55"></div>
+          <svg class="drop-art" viewBox="-120 -120 240 240" role="img" aria-label="Ilustração de uma gotícula com moléculas de CO2 dentro">
+            <defs>
+              <radialGradient id="dBody" cx="46%" cy="62%" r="62%">
+                <stop offset="0" stop-color="#5fc9e6" stop-opacity="0.55"/>
+                <stop offset="0.55" stop-color="#1d6e93" stop-opacity="0.45"/>
+                <stop offset="0.86" stop-color="#062a40" stop-opacity="0.85"/>
+                <stop offset="1" stop-color="#9fe6ff" stop-opacity="0.9"/>
+              </radialGradient>
+              <radialGradient id="dShine" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#fff" stop-opacity="0.95"/>
+                <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="dCaustic" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#bff3ff" stop-opacity="0"/>
+                <stop offset="1" stop-color="#bff3ff" stop-opacity="0.7"/>
+              </linearGradient>
+              <radialGradient id="gO" cx="35%" cy="32%" r="70%">
+                <stop offset="0" stop-color="#ff8a92"/>
+                <stop offset="0.35" stop-color="#e0182a"/>
+                <stop offset="1" stop-color="#6e0610"/>
+              </radialGradient>
+              <radialGradient id="gC" cx="35%" cy="32%" r="70%">
+                <stop offset="0" stop-color="#8a8f96"/>
+                <stop offset="0.35" stop-color="#26282c"/>
+                <stop offset="1" stop-color="#050505"/>
+              </radialGradient>
+              <g id="co2">
+                <line x1="-13" y1="-1.7" x2="13" y2="-1.7" stroke="#c9d2d8" stroke-width="1.5"/>
+                <line x1="-13" y1="1.7" x2="13" y2="1.7" stroke="#c9d2d8" stroke-width="1.5"/>
+                <circle cx="-13" r="5" fill="url(#gO)"/>
+                <circle cx="13" r="5" fill="url(#gO)"/>
+                <circle r="5.6" fill="url(#gC)"/>
+              </g>
+              <clipPath id="dClip"><circle r="98"/></clipPath>
+            </defs>
+            <g class="drop-art__body">
+              <circle r="100" fill="url(#dBody)"/>
+              <circle class="drop-art__warm" r="100" fill="#ff5a5a" opacity="0"/>
+              <g class="drop-art__mols" clip-path="url(#dClip)">
+                <use href="#co2" transform="translate(-38 -30) rotate(20) scale(1.0)"/>
+                <use href="#co2" transform="translate(22 -44) rotate(-35) scale(0.9)"/>
+                <use href="#co2" transform="translate(46 4) rotate(70) scale(1.05)"/>
+                <use href="#co2" transform="translate(-8 8) rotate(-10) scale(1.1)"/>
+                <use href="#co2" transform="translate(-50 26) rotate(40) scale(0.85)"/>
+                <use href="#co2" transform="translate(18 46) rotate(15) scale(0.95)"/>
+                <use href="#co2" transform="translate(-24 52) rotate(-60) scale(0.8)"/>
+                <use href="#co2" transform="translate(52 -30) rotate(110) scale(0.8)"/>
+                <use href="#co2" transform="translate(-58 -6) rotate(95) scale(0.75)"/>
+                <use href="#co2" transform="translate(0 -66) rotate(5) scale(0.8)"/>
+              </g>
+              <path d="M -62 52 Q 0 98 62 52 Q 0 84 -62 52 Z" fill="url(#dCaustic)"/>
+              <circle r="99" fill="none" stroke="#cdf6ff" stroke-opacity="0.55" stroke-width="1.2"/>
+              <ellipse cx="-38" cy="-52" rx="22" ry="12" transform="rotate(-32 -38 -52)" fill="url(#dShine)" opacity="0.85"/>
+              <circle cx="-44" cy="-56" r="4" fill="#fff"/>
+              <circle cx="46" cy="44" r="2.2" fill="#fff" opacity="0.6"/>
+            </g>
+          </svg>
           <button class="callout callout--r front reveal" type="button" data-hl="r">
             <b>\(r(t)\)</b><span>o raio, que encolhe ao evaporar</span>
           </button>
@@ -278,7 +334,6 @@
               Dois anos de iniciação científica e o TCC formam uma investigação só. Cada resposta abriu a pergunta seguinte.
             </p>
           </div>
-          <div class="drop-anchor drop-anchor--head" data-temp="0.6" data-mass="0.7"></div>
         </header>
 
         <ol class="journey front">
@@ -482,7 +537,6 @@
               (SSPRK3, passo fixo, sistema completo).
             </p>
           </div>
-          <div class="drop-anchor drop-anchor--head" data-temp="0.85" data-mass="0.85"></div>
         </header>
 
         <div class="goal__grid front">
@@ -562,7 +616,6 @@
             <p class="kicker reveal">Conclusão</p>
             <h2 class="reveal">Rápido e fiel<br>à física</h2>
           </div>
-          <div class="drop-anchor drop-anchor--head drop-anchor--small" data-temp="1" data-mass="1"></div>
         </header>
         <ol class="takeaways front">
           <li class="reveal"><span class="mono">01</span>
@@ -654,7 +707,6 @@
   </main>
 
   <footer class="foot">
-    <div class="drop-anchor drop-anchor--end" data-temp="1" data-mass="1"></div>
     <div class="foot__inner front">
       <p class="foot__title">O caminho do CO<sub>2</sub></p>
       <button class="btn btn--ghost" type="button" data-to-top>
@@ -671,6 +723,6 @@
   <script defer src="site/vendor/katex/katex.min.js"></script>
   <script defer src="site/vendor/katex/auto-render.min.js"></script>
   <script defer src="site/vendor/lenis/lenis.min.js"></script>
-  <script type="module" src="site/js/main.js?v=9"></script>
+  <script type="module" src="site/js/main.js?v=12"></script>
 </body>
 </html>

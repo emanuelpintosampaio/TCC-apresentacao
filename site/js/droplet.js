@@ -1,16 +1,14 @@
-// A gotícula 3D e as moléculas de CO2.
+// A gotícula 3D e as moléculas de CO2, só na viagem do começo da página.
 //
-// Dois modos:
-//  - "palco": durante a viagem do começo da página, story.js passa a cada quadro
-//    a posição, o tamanho e a fase da gotícula (setStage).
-//  - "âncoras": no resto da página, a gotícula segue os elementos .drop-anchor
-//    (data-temp e data-mass vão de 0 a 1) conforme o scroll.
+// story.js passa a cada quadro a posição, o tamanho e a fase da gotícula
+// (setStage). Fora da viagem ela some e o desenho para.
 //
-// A gota é quase transparente: o que se vê dentro dela é o vídeo que está atrás
-// (a onda, e depois o fundo do mar), invertido como numa lente, com a borda
-// escura e o brilho de uma gota d'água de verdade. (O shader também tem um modo
-// para fundo claro, uMode = 1, que hoje não é usado.) As moléculas de CO2 são O=C=O em bolas e
-// varetas (carbono preto, oxigênios vermelhos, ligações duplas).
+// A gota é desenhada em três camadas, como uma gota d'água de verdade:
+//  1. o corpo: uma lente que mostra a cena de trás invertida e nítida, mais
+//     escura no alto, com a luz concentrada embaixo e uma faixa escura na borda;
+//  2. as moléculas de CO2 (O=C=O em bolas e varetas) dentro e em volta dela;
+//  3. o brilho do vidro por cima de tudo: o reflexo forte, uma janela de luz
+//     suave e um fio de luz na borda.
 
 import * as THREE from '../vendor/three/three.module.min.js';
 
@@ -28,7 +26,7 @@ const DROP_VERT = /* glsl */ `
     float a1 = dot(K1, p) + uTime * 1.1;
     float a2 = dot(K2, p) + uTime * 1.7 + 1.3;
     float a3 = dot(K3, p) - uTime * 1.3 + 2.1;
-    // ondulação da superfície e o gradiente dela, para corrigir a normal
+    // ondulação leve da superfície e o gradiente dela, para corrigir a normal
     float f = uWobble * (0.50 * sin(a1) + 0.35 * sin(a2) + 0.25 * sin(a3));
     vec3  g = uWobble * (0.50 * K1 * cos(a1) + 0.35 * K2 * cos(a2) + 0.25 * K3 * cos(a3));
     vec3 n = normalize(p);
@@ -37,113 +35,116 @@ const DROP_VERT = /* glsl */ `
   }
 `;
 
-const DROP_FRAG = /* glsl */ `
-  precision highp float;
-  uniform sampler2D uBg;       // vídeo que está atrás da gota
-  uniform float uBgReady;
-  uniform vec4 uCover;         // como o vídeo cobre a tela: x, y, largura, altura (px)
+// Partes comuns às duas camadas da gota
+const DROP_COMMON = /* glsl */ `
   uniform vec2 uView;          // tamanho da tela (px CSS)
   uniform float uDpr;
   uniform vec2 uCenter;        // centro da gota (px CSS, a partir do topo)
   uniform float uRadius;
-  uniform float uGain;
-  uniform sampler2D uEnv;      // reserva enquanto o vídeo não carrega
   uniform float uOpacity;
-  uniform float uTemp;
-  uniform float uMode;         // 0 = sobre o vídeo, 1 = sobre o fundo branco
   uniform vec2 uLight;
   varying vec3 vN;
+
+  // posição do pixel em relação ao centro da gota: (0,0) no centro, comprimento 1 na borda
+  vec2 local() {
+    vec2 frag = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr;
+    return (frag - uCenter) / uRadius;
+  }
+`;
+
+const BODY_FRAG = /* glsl */ `
+  precision highp float;
+  ${DROP_COMMON}
+  uniform sampler2D uBg;       // a cena que está atrás da gota
+  uniform float uBgReady;
+  uniform vec4 uCover;         // como essa cena cobre a tela: x, y, largura, altura (px)
+  uniform float uGain;
+  uniform sampler2D uEnv;      // reserva enquanto a cena não carrega
+  uniform float uTemp;
 
   vec3 bg(vec2 p) {
     vec2 uv = (p - uCover.xy) / uCover.zw;
     uv = clamp(vec2(uv.x, 1.0 - uv.y), 0.002, 0.998);
-    return texture2D(uBg, uv).rgb * uGain;
+    return texture2D(uBg, uv).rgb;
   }
-  vec3 env(vec3 d) {
-    d = normalize(d);
-    float u = atan(d.z, d.x) / 6.2831853 + 0.5;
-    float v = asin(clamp(d.y, -1.0, 1.0)) / 3.14159265 + 0.5;
-    return texture2D(uEnv, vec2(1.0 - abs(2.0 * fract(u) - 1.0), v)).rgb;
+  vec3 env(vec2 q) {
+    return texture2D(uEnv, clamp(vec2(0.5 + q.x * 0.3, 0.5 - q.y * 0.3), 0.0, 1.0)).rgb;
   }
 
   void main() {
-    vec3 N = normalize(vN);
-    vec3 V = vec3(0.0, 0.0, 1.0);
-    float nv = clamp(dot(N, V), 0.0, 1.0);
-    float fres = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
+    vec2 q = local();
+    float rr = length(q);
+    if (rr > 1.0) discard;
 
-    // Pixel atual em px CSS, com a origem no topo da tela
-    vec2 frag = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr;
-    vec2 d = frag - uCenter;
-
-    // Uma gota é uma lente: mostra a cena de trás invertida e encolhida.
-    // Cada cor com uma força um pouco diferente, para a franja colorida da borda.
-    vec2 bend = N.xy * vec2(1.0, -1.0) * uRadius * 0.18;
-    vec3 refr = vec3(
-      bg(uCenter - d * 1.10 + bend).r,
-      bg(uCenter - d * 1.16 + bend).g,
-      bg(uCenter - d * 1.22 + bend).b
+    // Lente de água: a cena de trás aparece ampliada no meio e comprimida na
+    // borda, como através de uma bolinha de vidro. Um pouco de dispersão nas cores perto da borda.
+    float k = 0.55 + 0.55 * rr * rr;
+    vec2 off = q * uRadius * k;
+    float disp = 0.04 * rr * rr;
+    vec3 scene = vec3(
+      bg(uCenter + off * (1.0 + disp)).r,
+      bg(uCenter + off).g,
+      bg(uCenter + off * (1.0 - disp)).b
     );
-    vec3 fallback = env(refract(-V, N, 0.75)) * 0.8;
-    refr = mix(fallback, refr, uBgReady);
+    vec3 col = mix(env(q), scene * uGain, uBgReady);
 
-    vec3 refl = env(reflect(-V, N));
+    // água limpa: um pouco mais clara, com cor e um leve tom azul
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+    col = mix(vec3(lum), col, 1.18) * vec3(0.94, 1.0, 1.05) * 1.06;
+    // sombra suave em cima, luz embaixo (a gota funciona como lente para a luz do céu)
+    col *= 0.86 + 0.22 * smoothstep(-1.0, 0.8, q.y);
+    // em cena escura (debaixo d'água) a gota não vira uma bola preta: um leve brilho de água
+    col += vec3(0.03, 0.08, 0.1) * (1.0 - smoothstep(0.0, 0.35, lum));
 
-    vec3 L = normalize(vec3(uLight, 0.8));
-    vec3 H = normalize(L + V);
-    // brilho principal (pequeno e forte) e um reflexo largo e suave, como uma janela
-    float spec  = pow(max(dot(N, H), 0.0), 2600.0) * 1.6;
-    float spec2 = pow(max(dot(N, H), 0.0), 40.0) * 0.16;
-    vec3 L2 = normalize(vec3(-uLight * 0.6 + vec2(0.35, 0.1), 0.9));
-    float spec3 = pow(max(dot(N, normalize(L2 + V)), 0.0), 380.0) * 0.4;
-    // luz que atravessa a gota e se concentra no lado oposto (cáustica em crescente)
-    float caustic = pow(max(dot(N, normalize(vec3(-L.xy, 0.25))), 0.0), 9.0);
-    float rim = pow(1.0 - nv, 3.0);
-    // faixa escura perto da borda (reflexão interna total) e um fio de luz bem na borda
-    float band = smoothstep(0.42, 0.06, nv) * (1.0 - smoothstep(0.06, 0.0, nv));
-    float edge = smoothstep(0.10, 0.0, nv);
+    // luz concentrada em crescente, embaixo e à direita, dentro da borda
+    float side = max(dot(normalize(q + 1e-4), normalize(vec2(0.45, 0.9))), 0.0);
+    float crescent = smoothstep(0.62, 0.86, rr) * (1.0 - smoothstep(0.88, 0.95, rr)) * pow(side, 2.0);
+    vec3 glow = mix(vec3(1.0, 0.88, 0.9), vec3(0.8, 0.97, 1.0), uTemp);
+    col += glow * crescent * 0.55;
 
-    vec3 tint = mix(vec3(1.0, 0.8, 0.8), vec3(0.74, 0.94, 1.0), uTemp);
+    // contorno: uma faixa escura e fina logo antes da borda
+    float band = smoothstep(0.84, 0.96, rr);
+    col *= 1.0 - band * 0.55;
 
-    // --- sobre o vídeo ---
-    vec3 colV = refr * mix(vec3(1.0), tint, 0.22) * 1.1;
-    colV *= 1.0 - band * 0.55;
-    colV = mix(colV, refl, fres * 0.6);
-    colV += tint * caustic * 0.75 + vec3(0.85, 0.97, 1.0) * edge * 0.55;
-    colV += vec3(spec + spec2 + spec3);
-    float aV = 0.3 + 0.35 * fres + band * 0.35 + edge * 0.4 + caustic * 0.3 + spec + spec3;
-
-    // --- sobre o branco ---
-    vec3 deep = vec3(0.07, 0.36, 0.52);
-    vec3 colW = mix(vec3(0.93, 0.98, 1.0), deep, band * 0.9 + rim * 0.25);
-    colW = mix(colW, vec3(0.55, 0.85, 0.98), caustic * 0.6);
-    colW += vec3(spec + spec3) + edge * 0.15;
-    float aW = 0.07 + band * 0.55 + rim * 0.35 + caustic * 0.35 + spec + spec3;
-
-    vec3 col = mix(colV, colW, uMode);
-    float a = mix(aV, aW, uMode);
-    gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * uOpacity);
+    // transparente o bastante para a gota parecer água; borda suave, sem serrilhado
+    float a = (1.0 - smoothstep(0.975, 1.0, rr)) * mix(0.9, 0.97, band);
+    gl_FragColor = vec4(col, a * uOpacity);
   }
 `;
 
-// Brilho suave em volta da gota
-const HALO_VERT = /* glsl */ `
-  varying vec2 vUv;
-  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-`;
-const HALO_FRAG = /* glsl */ `
+const GLINT_FRAG = /* glsl */ `
   precision highp float;
-  uniform float uOpacity;
-  uniform float uMode;
-  varying vec2 vUv;
+  ${DROP_COMMON}
+
+  // elipse suave girada, em coordenadas da gota
+  float blob(vec2 q, vec2 c, vec2 r, float ang, float soft) {
+    float cs = cos(ang), sn = sin(ang);
+    vec2 d = q - c;
+    d = vec2(cs * d.x + sn * d.y, -sn * d.x + cs * d.y) / r;
+    return 1.0 - smoothstep(1.0 - soft, 1.0, length(d));
+  }
+
   void main() {
-    vec2 q = vUv - 0.5;
-    // no branco, a sombra fica um pouco abaixo da gota
-    q.y += uMode * 0.06;
-    float d = length(q) * 2.0;
-    float a = exp(-d * d * 7.0) * mix(0.16, 0.10, uMode) * smoothstep(1.0, 0.55, d) * uOpacity;
-    vec3 c = mix(vec3(0.45, 0.85, 1.0), vec3(0.05, 0.35, 0.5), uMode);
-    gl_FragColor = vec4(c * a, a);
+    vec2 q = local();
+    float rr = length(q);
+    if (rr > 1.0) discard;
+    // a luz vem do alto à esquerda e acompanha um pouco o mouse
+    vec2 l = normalize(vec2(uLight.x, -uLight.y));
+    vec2 hp = l * 0.52;
+    float ang = atan(l.y, l.x) + 1.5708;
+
+    // reflexo em forma de janela (largo e suave) e um ponto forte de luz
+    float window = blob(q, hp, vec2(0.30, 0.13), ang, 0.7) * 0.32;
+    float sparkle = blob(q, hp * 1.08, vec2(0.055, 0.055), 0.0, 0.8) * 1.1;
+    // um reflexo pequeno e fraco do lado oposto
+    float back = blob(q, -hp * 1.25, vec2(0.08, 0.04), ang, 0.9) * 0.22;
+    // fio de luz fino bem na borda, mais forte do lado da luz
+    float lit = 0.35 + 0.65 * max(dot(normalize(q + 1e-4), l), 0.0);
+    float rim = smoothstep(0.93, 0.985, rr) * (1.0 - smoothstep(0.985, 1.0, rr)) * lit;
+
+    vec3 c = vec3(window + sparkle + back) + vec3(0.85, 0.97, 1.0) * rim * 0.7;
+    // soma por cima (brilho), sem escurecer nada
+    gl_FragColor = vec4(c * uOpacity, 0.0);
   }
 `;
 
@@ -178,74 +179,78 @@ export function initDroplet({ canvas, reducedMotion = false }) {
   fill.position.set(0.7, -0.4, 0.6);
   scene.add(fill);
 
-  // ---------------- Fundo que a gota refrata ----------------
+  // ---------------- Cena atrás da gota ----------------
   let envLoaded;
   const envReady = new Promise((res) => { envLoaded = res; });
   const env = new THREE.TextureLoader().load(new URL('../media/env.jpg', import.meta.url).href, (t) => envLoaded(t));
-  env.wrapS = THREE.MirroredRepeatWrapping;
   env.colorSpace = THREE.SRGBColorSpace;
-  const bgSources = new Map();   // elemento <video> -> textura
-  let bgVideo = null;
+  const bgSources = new Map();   // elemento (vídeo ou canvas) -> textura
 
-  function textureFor(video) {
-    if (!bgSources.has(video)) {
-      // o fundo pode ser um vídeo ou um canvas (os quadros da onda no celular)
-      const tex = video instanceof HTMLCanvasElement ? new THREE.CanvasTexture(video) : new THREE.VideoTexture(video);
+  function textureFor(src) {
+    if (!bgSources.has(src)) {
+      // a cena pode ser o vídeo da onda ou um canvas (os quadros da onda no celular)
+      const tex = src instanceof HTMLCanvasElement ? new THREE.CanvasTexture(src) : new THREE.VideoTexture(src);
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.minFilter = THREE.LinearFilter;
-      // Vídeo parado (o da onda, rolado pelo scroll): atualiza a cada quadro novo
+      // vídeo parado (rolado pelo scroll): atualiza a cada quadro novo
       const bump = () => { tex.needsUpdate = true; };
-      for (const ev of ['seeked', 'loadeddata', 'timeupdate']) video.addEventListener(ev, bump);
-      bgSources.set(video, tex);
+      for (const ev of ['seeked', 'loadeddata', 'timeupdate']) src.addEventListener(ev, bump);
+      bgSources.set(src, tex);
     }
-    return bgSources.get(video);
+    return bgSources.get(src);
   }
 
-  // ---------------- A gota ----------------
+  // ---------------- A gota (corpo e brilho) ----------------
   const uTime = { value: 0 };
-  const dropMat = new THREE.ShaderMaterial({
+  const shared = {
+    uView: { value: new THREE.Vector2(1, 1) },
+    uDpr: { value: 1 },
+    uCenter: { value: new THREE.Vector2(0, 0) },
+    uRadius: { value: 100 },
+    uOpacity: { value: 0 },
+    uLight: { value: new THREE.Vector2(-0.45, 0.6) },
+    uEnv: { value: env },
+    uTime,
+    uWobble: { value: reducedMotion ? 0 : 0.02 },
+  };
+  const bodyMat = new THREE.ShaderMaterial({
     vertexShader: DROP_VERT,
-    fragmentShader: DROP_FRAG,
+    fragmentShader: BODY_FRAG,
     transparent: true, depthWrite: false, depthTest: false,
     uniforms: {
-      uTime,
-      uWobble: { value: reducedMotion ? 0 : 0.025 },
+      ...shared,
       uBg: { value: env },
       uBgReady: { value: 0 },
       uCover: { value: new THREE.Vector4(0, 0, 1, 1) },
-      uView: { value: new THREE.Vector2(1, 1) },
-      uDpr: { value: 1 },
-      uCenter: { value: new THREE.Vector2(0, 0) },
-      uRadius: { value: 100 },
       uGain: { value: 0.9 },
-      uEnv: { value: env },
-      uOpacity: { value: 0 },
       uTemp: { value: 0 },
-      uMode: { value: 1 },
-      uLight: { value: new THREE.Vector2(-0.45, 0.6) },
     },
   });
-  const drop = new THREE.Mesh(new THREE.IcosahedronGeometry(1, mobile ? 18 : 32), dropMat);
-  drop.renderOrder = 2;
-  const haloMat = new THREE.ShaderMaterial({
-    vertexShader: HALO_VERT, fragmentShader: HALO_FRAG,
-    uniforms: { uOpacity: { value: 0 }, uMode: { value: 0 } },
+  const glintMat = new THREE.ShaderMaterial({
+    vertexShader: DROP_VERT,
+    fragmentShader: GLINT_FRAG,
+    uniforms: shared,
     transparent: true, depthWrite: false, depthTest: false,
-    blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+    blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
   });
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 4.4), haloMat);
-  halo.renderOrder = 0;
-  scene.add(halo, drop);
+  const sphere = new THREE.IcosahedronGeometry(1, mobile ? 18 : 32);
+  const body = new THREE.Mesh(sphere, bodyMat);
+  const glint = new THREE.Mesh(sphere, glintMat);
+  body.renderOrder = 0;    // 1º o corpo,
+  glint.renderOrder = 2;   // 3º o brilho por cima das moléculas
+  scene.add(body, glint);
 
   // ---------------- Moléculas de CO2 ----------------
   const NMOL = mobile ? 26 : 40;
   const atomGeo = mobile ? new THREE.SphereGeometry(1, 14, 10) : new THREE.SphereGeometry(1, 24, 18);
   // material com verniz: brilho nítido e reflexo do ambiente
-  const atomMat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.55 });
+  // transparent: true (com opacidade 1) põe as moléculas na mesma fila de desenho da gota,
+  // e a ordem fica corpo, moléculas, brilho
+  const atomMat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.55, transparent: true, depthWrite: true });
   const atoms = new THREE.InstancedMesh(atomGeo, atomMat, NMOL * 3);
   atoms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   atoms.frustumCulled = false;
-  atoms.renderOrder = 1;   // antes da gota: as de dentro ficam "atrás do vidro"
+  atoms.renderOrder = 1;   // 2º as moléculas, sobre o corpo e sob o brilho
   for (let i = 0; i < NMOL; i++) {
     atoms.setColorAt(i * 3, C_COLOR);
     atoms.setColorAt(i * 3 + 1, O_COLOR);
@@ -253,7 +258,7 @@ export function initDroplet({ canvas, reducedMotion = false }) {
   }
   // ligações duplas C=O: duas varetas entre o carbono e cada oxigênio
   const stickGeo = new THREE.CylinderGeometry(1, 1, 1, 12, 1);
-  const stickMat = new THREE.MeshPhysicalMaterial({ color: 0xc9d2d8, roughness: 0.3, clearcoat: 0.6, envMapIntensity: 0.8 });
+  const stickMat = new THREE.MeshPhysicalMaterial({ color: 0xc9d2d8, roughness: 0.3, clearcoat: 0.6, envMapIntensity: 0.8, transparent: true, depthWrite: true });
   const sticks = new THREE.InstancedMesh(stickGeo, stickMat, NMOL * 4);
   sticks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   sticks.frustumCulled = false;
@@ -263,8 +268,10 @@ export function initDroplet({ canvas, reducedMotion = false }) {
   // reflexos do ambiente nas moléculas (a partir do quadro da onda)
   const pmrem = new THREE.PMREMGenerator(renderer);
   envReady.then((tex) => {
-    tex.mapping = THREE.EquirectangularReflectionMapping;
-    const rt = pmrem.fromEquirectangular(tex);
+    const t2 = tex.clone();
+    t2.mapping = THREE.EquirectangularReflectionMapping;
+    t2.needsUpdate = true;
+    const rt = pmrem.fromEquirectangular(t2);
     atomMat.envMap = stickMat.envMap = rt.texture;
     atomMat.needsUpdate = stickMat.needsUpdate = true;
   });
@@ -275,8 +282,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
     // posição no ar: anel em volta da gota, em unidades do raio
     const ang = rnd(0, Math.PI * 2);
     const dist = rnd(1.35, 2.5);
-    // posição dentro: ponto aleatório numa esfera de raio 0,7
-    const u = rnd(-1, 1), th = rnd(0, Math.PI * 2), rr = Math.cbrt(Math.random()) * 0.7;
+    // posição dentro: ponto aleatório numa esfera de raio 0,62 (longe da faixa escura)
+    const u = rnd(-1, 1), th = rnd(0, Math.PI * 2), rr = Math.cbrt(Math.random()) * 0.62;
     const sq = Math.sqrt(1 - u * u);
     mols.push({
       air: new THREE.Vector2(Math.cos(ang) * dist, Math.sin(ang) * dist * 0.8),
@@ -315,72 +322,28 @@ export function initDroplet({ canvas, reducedMotion = false }) {
     canvas.style.height = `${H}px`;
     camera.right = W; camera.bottom = -H;
     camera.updateProjectionMatrix();
-    dropMat.uniforms.uView.value.set(W, H);
-    dropMat.uniforms.uDpr.value = dpr;
+    shared.uView.value.set(W, H);
+    shared.uDpr.value = dpr;
+    needsClear = true;
   }
+  let needsClear = false;
   resize();
   window.addEventListener('resize', resize);
 
-  // Retângulo que um vídeo em "object-fit: cover" ocupa na tela
-  function cover(video) {
-    // os quadros já são desenhados no tamanho da tela fixa da viagem
-    if (video instanceof HTMLCanvasElement) return [0, 0, W, document.querySelector('.stage__pin')?.offsetHeight || H];
-    const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+  // Retângulo que a cena (vídeo em "object-fit: cover" ou canvas) ocupa na tela
+  function cover(src) {
+    if (src instanceof HTMLCanvasElement) return [0, 0, W, document.querySelector('.stage__pin')?.offsetHeight || H];
+    const vw = src.videoWidth || 1280, vh = src.videoHeight || 720;
     const s = Math.max(W / vw, H / vh);
     return [(W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s];
-  }
-
-  // ---------------- Âncoras (modo do resto da página) ----------------
-  const anchors = [...document.querySelectorAll('.drop-anchor')].map((el) => ({
-    el,
-    temp: parseFloat(el.dataset.temp ?? '0'),
-    mass: parseFloat(el.dataset.mass ?? '0'),
-    x: 0, y: 0, r: 0,
-  }));
-
-  function measure() {
-    const sx = window.scrollX, sy = window.scrollY;
-    for (const a of anchors) {
-      const b = a.el.getBoundingClientRect();
-      a.x = b.left + b.width / 2 + sx;
-      a.y = b.top + b.height / 2 + sy;
-      a.r = b.width / 2;
-    }
-    anchors.sort((p, q) => p.y - q.y);
-  }
-
-  function anchorTarget() {
-    if (!anchors.length) return null;
-    measure();
-    const sx = window.scrollX, sy = window.scrollY;
-    const s = sy + H / 2;
-    let i = 0;
-    while (i < anchors.length - 2 && s > anchors[i + 1].y) i++;
-    const a = anchors[i], b = anchors[Math.min(i + 1, anchors.length - 1)];
-    const gap = Math.max(1, b.y - a.y);
-    const win = Math.min(gap, H * 1.15);
-    const t = smooth(clamp01((s - (a.y + gap / 2 - win / 2)) / win));
-    return {
-      x: lerp(a.x, b.x, t) - sx,
-      y: lerp(a.y, b.y, t) - sy,
-      r: lerp(a.r, b.r, t),
-      temp: lerp(a.temp, b.temp, t),
-      absorb: lerp(a.mass, b.mass, t),
-      release: 0,
-      air: 0,
-      // fica mais translúcida enquanto viaja, para não atrapalhar a leitura
-      alpha: 1 - Math.sin(Math.PI * t) * (mobile ? 0.8 : 0.45),
-    };
   }
 
   // ---------------- Estado ----------------
   let stage = null;
   let bgReady = 0;
-  let mode = 0;
+  let idle = false;
   const cur = { x: W / 2, y: H / 2, r: 0, temp: 0, absorb: 0, release: 0, air: 0, alpha: 0, init: false };
   const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
-  let highlight = null;
-  let hlPulse = 0;
 
   window.addEventListener('pointermove', (e) => {
     mouse.x = (e.clientX / W) * 2 - 1;
@@ -408,13 +371,17 @@ export function initDroplet({ canvas, reducedMotion = false }) {
     const time = clock.elapsedTime;
     uTime.value = time;
 
-    const tg = stage || anchorTarget();
-    if (!tg) return;
+    // fora da viagem a gota some aos poucos e depois o desenho para
+    const tg = stage || { ...cur, alpha: 0, air: 0 };
+    if (!stage && cur.alpha < 0.005) {
+      if (!idle || needsClear) { renderer.clear(); idle = true; needsClear = false; }
+      return;
+    }
+    idle = false;
     if (!cur.init) Object.assign(cur, tg, { init: true });
 
-    // No palco a posição já vem suave do scroll; nas âncoras há inércia
-    const k = stage || reducedMotion ? 1 - Math.exp(-dt * 30) : 1 - Math.exp(-dt * 7);
-    const kAlpha = 1 - Math.exp(-dt * (stage ? 30 : 5));
+    const k = 1 - Math.exp(-dt * 30);
+    const kAlpha = 1 - Math.exp(-dt * (stage ? 30 : 8));
     const px = cur.x, py = cur.y;
     cur.x = lerp(cur.x, tg.x, k);
     cur.y = lerp(cur.y, tg.y, k);
@@ -425,55 +392,49 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
     mouse.sx = lerp(mouse.sx, mouse.x, 1 - Math.exp(-dt * 3));
     mouse.sy = lerp(mouse.sy, mouse.y, 1 - Math.exp(-dt * 3));
-    hlPulse = lerp(hlPulse, highlight ? 1 : 0, 1 - Math.exp(-dt * 6));
 
-    const r = Math.max(0.001, cur.r * (1 + hlPulse * 0.06 * Math.sin(time * 4.5)));
-    const bob = reducedMotion ? 0 : Math.sin(time * 0.9) * Math.min(r, 160) * 0.035;
-    const cx = cur.x + mouse.sx * Math.min(r, 200) * 0.04;
-    const cy = cur.y + bob + mouse.sy * Math.min(r, 200) * 0.04;
+    const r = Math.max(0.001, cur.r);
+    const bob = reducedMotion ? 0 : Math.sin(time * 0.9) * Math.min(r, 160) * 0.03;
+    const cx = cur.x + mouse.sx * Math.min(r, 200) * 0.03;
+    const cy = cur.y + bob + mouse.sy * Math.min(r, 200) * 0.03;
 
-    // Estica um pouco na direção do movimento
+    // estica um pouco na direção do movimento
     const vx = Math.abs(cur.x - px) / Math.max(dt, 1e-3);
     const vy = Math.abs(cur.y - py) / Math.max(dt, 1e-3);
-    const ax = reducedMotion ? 0 : Math.min(0.16, vx / (r * 60 + 500));
-    const ay = reducedMotion ? 0 : Math.min(0.16, vy / (r * 60 + 500));
+    const ax = reducedMotion ? 0 : Math.min(0.12, vx / (r * 60 + 500));
+    const ay = reducedMotion ? 0 : Math.min(0.12, vy / (r * 60 + 500));
 
     const visible = r > 1.5 && cur.alpha > 0.01;
-    drop.visible = halo.visible = visible;
-    drop.position.set(cx, -cy, 0);
-    halo.position.set(cx, -cy, -1);
-    drop.scale.set(r * (1 + ax - ay * 0.45), r * (1 + ay - ax * 0.45), r);
-    halo.scale.setScalar(r);
+    body.visible = glint.visible = visible;
+    for (const m of [body, glint]) {
+      m.position.set(cx, -cy, 0);
+      m.scale.set(r * (1 + ax - ay * 0.45), r * (1 + ay - ax * 0.45), r);
+    }
 
-    // Fundo refratado
-    const vid = stage?.video || bgVideo;
-    const ready = vid && (vid instanceof HTMLCanvasElement ? vid.dataset.ready === '1' : vid.readyState >= 2);
+    // cena refratada
+    const src = stage?.video;
+    const ready = src && (src instanceof HTMLCanvasElement ? src.dataset.ready === '1' : src.readyState >= 2);
     if (ready) {
-      dropMat.uniforms.uBg.value = textureFor(vid);
+      bodyMat.uniforms.uBg.value = textureFor(src);
       bgReady = lerp(bgReady, 1, 1 - Math.exp(-dt * 6));
-      dropMat.uniforms.uCover.value.set(...cover(vid));
-      dropMat.uniforms.uGain.value = stage?.gain ?? 0.55;
+      bodyMat.uniforms.uCover.value.set(...cover(src));
+      bodyMat.uniforms.uGain.value = (stage?.gain ?? 0.9) * 1.25;
     } else {
       bgReady = lerp(bgReady, 0, 1 - Math.exp(-dt * 6));
     }
-    dropMat.uniforms.uBgReady.value = bgReady;
-    mode = 0;   // fundo escuro na página toda
-    dropMat.uniforms.uMode.value = mode;
-    haloMat.uniforms.uMode.value = mode;
-    dropMat.uniforms.uCenter.value.set(cx, cy);
-    dropMat.uniforms.uRadius.value = r;
-    dropMat.uniforms.uOpacity.value = cur.alpha;
-    dropMat.uniforms.uTemp.value = clamp01(cur.temp);
-    dropMat.uniforms.uLight.value.set(-0.45 + mouse.sx * 0.3, 0.6 - mouse.sy * 0.3);
-    dropMat.uniforms.uWobble.value = reducedMotion ? 0 : 0.025 * Math.min(1, 120 / Math.max(r, 1) + 0.3);
-    haloMat.uniforms.uOpacity.value = cur.alpha;
+    bodyMat.uniforms.uBgReady.value = bgReady;
+    bodyMat.uniforms.uTemp.value = clamp01(cur.temp);
+    shared.uCenter.value.set(cx, cy);
+    shared.uRadius.value = r;
+    shared.uOpacity.value = cur.alpha;
+    shared.uLight.value.set(-0.45 + mouse.sx * 0.25, 0.6 - mouse.sy * 0.25);
+    shared.uWobble.value = reducedMotion ? 0 : 0.02 * Math.min(1, 120 / Math.max(r, 1) + 0.3);
 
     // ---- moléculas ----
     const s = Math.min(9, Math.max(mobile ? 3.2 : 3.8, r * 0.048));
-    const absorb = clamp01(cur.absorb + (highlight === 'm' ? 0.35 * hlPulse : 0));
     for (let i = 0; i < NMOL; i++) {
       const m = mols[i];
-      const u = smooth(clamp01((absorb - m.tAbs) / 0.1));      // 0 = no ar, 1 = dentro
+      const u = smooth(clamp01((cur.absorb - m.tAbs) / 0.1));  // 0 = no ar, 1 = dentro
       const vRel = clamp01((cur.release - m.tRel) / 0.42);     // saída no mar
 
       // ponto dentro da gota (girando devagar)
@@ -502,8 +463,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
       }
 
       let scale = s * m.size * Math.min(1, r / 30);   // some junto quando a gota fica minúscula
-      if (u < 1) scale *= cur.air;                    // no ar, só aparecem no palco
-      if (vRel > 0) scale *= 1 - ss(0.55, 1, vRel);  // dissolvem
+      if (u < 1) scale *= cur.air;                    // as que estão no ar aparecem aos poucos
+      if (vRel > 0) scale *= 1 - ss(0.55, 1, vRel);  // dissolvem no mar
       else scale *= Math.min(1, cur.alpha * 1.6);
 
       const mol = molScreen[i];
@@ -548,12 +509,9 @@ export function initDroplet({ canvas, reducedMotion = false }) {
   return {
     // Palco: { x, y, r, alpha, temp, absorb, release, air, video, gain } ou null
     setStage(state) { stage = state; },
-    // Vídeo que fica atrás da gota fora do palco
-    setBackground(video) { bgVideo = video; },
-    setHighlight(name) { highlight = name; },
-    // avisa que o canvas de fundo mudou (um quadro novo da onda)
+    // avisa que o canvas da cena mudou (um quadro novo da onda)
     bgDirty() { const src = stage?.video; if (src && bgSources.has(src)) bgSources.get(src).needsUpdate = true; },
-    // Uma molécula que ainda está no ar, perto da gota (para o rótulo "CO₂")
+    // uma molécula que ainda está no ar, perto da gota (para o rótulo "CO₂")
     nearestAirMolecule() {
       let best = null, bd = Infinity;
       for (const m of molScreen) {

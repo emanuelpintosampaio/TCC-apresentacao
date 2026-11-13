@@ -189,7 +189,6 @@ export function initStory({ onDrop } = {}) {
     deepOn = true;
     deepVideo.src = deepVideo.dataset.src;
     deepVideo.play().catch(() => {});
-    drop?.setBackground(deepVideo);
   }
   // bolhas subindo
   const bubbles = $('.deep__bubbles');
@@ -347,25 +346,28 @@ export function initStory({ onDrop } = {}) {
   if (lenis) requestAnimationFrame(raf);
 
   /* ---------------------------- Gotícula 3D ----------------------------- */
-  import('./droplet.js?v=9')
+  import('./droplet.js?v=12')
     .then(({ initDroplet }) => {
       drop = initDroplet({ canvas: $('#drop'), reducedMotion: reduced });
       if (!drop) throw new Error('sem gotícula');
-      if (deepOn) drop.setBackground(deepVideo);
-      $$('.callout').forEach((c) => {
-        const on = () => { drop.setHighlight(c.dataset.hl); c.classList.add('is-on'); };
-        const off = () => { drop.setHighlight(null); c.classList.remove('is-on'); };
-        c.addEventListener('pointerenter', on);
-        c.addEventListener('pointerleave', off);
-        c.addEventListener('focus', on);
-        c.addEventListener('blur', off);
-      });
       onDrop?.(drop);
     })
     .catch((err) => {
       console.warn('Gotícula 3D indisponível:', err);
       html.classList.add('no-webgl');
     });
+
+  /* ------------- Rótulos r(t), T(t), m(t) e a gota ilustrada ------------- */
+  // passar o mouse ou o dedo num rótulo destaca a parte correspondente da gota
+  const ring = $('.stage-ring');
+  $$('.callout').forEach((c) => {
+    const on = () => { ring?.classList.add(`hl-${c.dataset.hl}`); c.classList.add('is-on'); };
+    const off = () => { ring?.classList.remove(`hl-${c.dataset.hl}`); c.classList.remove('is-on'); };
+    c.addEventListener('pointerenter', on);
+    c.addEventListener('pointerleave', off);
+    c.addEventListener('focus', on);
+    c.addEventListener('blur', off);
+  });
 
   return { scrollTo };
 }

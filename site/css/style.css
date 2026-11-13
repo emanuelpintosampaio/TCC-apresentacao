@@ -357,15 +357,6 @@ h4 { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-s
   padding-top: 22px; border-top: 1px solid var(--line-strong);
 }
 .sec__head--wide { display: block; }
-.drop-anchor { aspect-ratio: 1; pointer-events: none; flex: none; }
-.drop-anchor--head { width: clamp(110px, 15vw, 210px); margin-right: clamp(0px, 6vw, 90px); }
-.drop-anchor--small { width: clamp(80px, 10vw, 140px); }
-.drop-anchor--end { position: absolute; left: 50%; top: 36px; width: 8px; transform: translateX(-50%); }
-.no-webgl .drop-anchor:not(.drop-anchor--end) {
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.95) 0 4%, transparent 9%), radial-gradient(circle at 50% 55%, rgba(150, 230, 255, 0.1), rgba(200, 245, 255, 0.3) 100%);
-  box-shadow: inset 0 0 0 1px rgba(200, 245, 255, 0.55);
-}
 
 /* Revelação ao rolar */
 .js .reveal {
@@ -412,7 +403,15 @@ h4 { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-s
 .stage-ring::before { width: 74%; aspect-ratio: 1; border: 1px dashed var(--line-strong); animation: spin 80s linear infinite; }
 .stage-ring::after { width: 98%; aspect-ratio: 1; border: 1px solid var(--line); }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-.drop-anchor--ring { width: 46%; }
+/* gota ilustrada (fixa, em SVG) */
+.drop-art { width: 40%; overflow: visible; filter: drop-shadow(0 30px 40px rgba(0, 10, 25, 0.55)); }
+.drop-art__body { transform-origin: center; transform-box: fill-box; transition: transform 0.6s var(--ease); }
+.drop-art__mols { transform-origin: 0 0; animation: stir 90s linear infinite; transition: filter 0.4s; }
+@keyframes stir { to { transform: rotate(360deg); } }
+.drop-art__warm { transition: opacity 0.5s; }
+.stage-ring.hl-r .drop-art__body { transform: scale(0.88); }
+.stage-ring.hl-t .drop-art__warm { opacity: 0.22; }
+.stage-ring.hl-m .drop-art__mols { filter: brightness(1.35) drop-shadow(0 0 4px rgba(255, 60, 70, 0.8)); }
 .callout {
   position: absolute; text-align: left; display: grid; gap: 2px;
   padding: 12px 18px; border-radius: 16px;
@@ -425,10 +424,11 @@ h4 { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-s
 .callout > span { font-size: 0.84rem; color: var(--ink-dim); }
 .callout { box-shadow: var(--shadow); }
 .callout:hover, .callout:focus-visible, .callout.is-on { border-color: var(--cyan); background: rgba(4, 50, 76, 0.85); }
-.callout--r { left: 0; top: 7%; }
-.callout--t { right: -2%; top: 44%; }
+.callout--r { left: 0; top: 4%; }
+.callout--t { right: 0; top: 4%; }
+.callout--r, .callout--t { max-width: 46%; }
 .callout--t b { color: var(--warm); }
-.callout--m { left: 5%; bottom: 7%; }
+.callout--m { left: 0; right: 0; bottom: 4%; width: max-content; margin-inline: auto; }
 .callout--m b { color: var(--co2); }
 
 .card {
@@ -739,10 +739,12 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
   h2 { font-size: clamp(2.2rem, 10vw, 3.2rem); }
   .lead { margin-top: 18px; }
   .sec__split { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .stage-ring { max-width: 420px; }
+  /* no celular a gota ilustrada fica em cima e os três rótulos embaixo, sem sobrepor */
+  .stage-ring { max-width: 420px; aspect-ratio: auto; display: grid; justify-items: start; gap: 10px; }
+  .stage-ring::before, .stage-ring::after { display: none; }
+  .drop-art { width: 62%; justify-self: center; margin-bottom: 14px; }
+  .callout, .callout--m, .callout--r, .callout--t { position: static; width: 100%; max-width: none; margin: 0; }
   .sec__head { grid-template-columns: minmax(0, 1fr); }
-  .sec__head .drop-anchor--head { position: absolute; right: 0; top: 10px; width: 78px; margin: 0; }
-  .sec__head h2 { padding-right: 70px; }
   .callout { padding: 9px 13px; }
   .callout b { font-size: 1.05rem; }
   .callout > span { font-size: 0.76rem; }
