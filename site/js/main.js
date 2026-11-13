@@ -1,8 +1,8 @@
 // Interações da página: equações, linhas do tempo, revelação ao rolar,
 // abas dos gráficos, contadores e o player. A viagem da gotícula fica em story.js.
 
-import { initPlayer } from './player.js?v=5';
-import { initStory } from './story.js?v=24';
+import { initPlayer } from './player.js?v=25';
+import { initStory } from './story.js?v=25';
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = (s, el = document) => el.querySelector(s);

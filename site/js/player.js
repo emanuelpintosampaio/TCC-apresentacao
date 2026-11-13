@@ -62,7 +62,7 @@ export function initPlayer(root) {
     updateUI();
   }).catch((err) => {
     console.warn('Player: não foi possível ler a lista de slides.', err);
-    msg.innerHTML = 'Não foi possível carregar os slides aqui. <a href="apresentacao(2).html">Abra a versão clássica</a>.';
+    msg.textContent = 'Não foi possível carregar os slides agora. Recarregue a página para tentar de novo.';
     msg.hidden = false;
     poster.hidden = true;
     throw err;

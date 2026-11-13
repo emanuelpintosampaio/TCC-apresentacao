@@ -8,7 +8,7 @@ https://emanuelpintosampaio.github.io/TCC-apresentacao/
 
 O site conta a pesquisa como uma história. Uma gotícula sai da crista de uma onda, absorve CO₂ do ar e volta para o mar levando o gás. Depois vêm o impacto, a física da gotícula, a pesquisa (as duas iniciações científicas e o TCC), os métodos, os resultados, a conclusão, os slides da defesa e os materiais. Funciona no computador e no celular, sem instalar nada.
 
-Nos slides, use as setas para avançar e voltar, a barra de espaço para pausar e `F` para tela cheia. Os mesmos slides também estão na [versão clássica](https://emanuelpintosampaio.github.io/TCC-apresentacao/apresentacao(2).html). O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
+Nos slides, use as setas para avançar e voltar, a barra de espaço para pausar e `F` para tela cheia. O código, os resultados e o texto do TCC estão no repositório [TCC](https://github.com/emanuelpintosampaio/TCC).
 
 ## Rodar o código no Google Colab
 
