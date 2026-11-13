@@ -91,10 +91,6 @@ export function initStory({ onDrop } = {}) {
   }
   const scrollTo = (target, opts) => (lenis ? lenis.scrollTo(target, opts) : (typeof target === 'number' ? window.scrollTo({ top: target, behavior: reduced ? 'auto' : 'smooth' }) : target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })));
   $$('[data-to-top]').forEach((b) => b.addEventListener('click', () => scrollTo(0, { duration: 2.2 })));
-  $$('[data-dive]').forEach((b) => b.addEventListener('click', () => {
-    const y = stageEl.offsetTop + (stageEl.offsetHeight - pinH()) * 0.33;
-    scrollTo(y, { duration: 2.4 });
-  }));
 
   /* ---------------------- Vídeo da onda (scrub) ------------------------- */
   let seeking = false;
