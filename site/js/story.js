@@ -251,6 +251,53 @@ export function initStory({ onDrop } = {}) {
     return { x, y, r, alpha };
   }
 
+  /* ------------------- Botões da animação (passos) ---------------------- */
+  const stepBtns = $$('.stage__step', stageEl);
+  const playBtn = $('#stagePlay');
+  const yAt = (p) => stageEl.offsetTop + (stageEl.offsetHeight - pinH()) * p;
+  const pNow = () => clamp01((window.scrollY - stageEl.offsetTop) / Math.max(1, stageEl.offsetHeight - pinH()));
+  let playing = false;
+  let manual = 0;   // animação de reserva, sem o Lenis
+  function stopPlay() {
+    if (!playing) return;
+    playing = false;
+    cancelAnimationFrame(manual);
+    if (lenis) lenis.scrollTo(window.scrollY, { immediate: true, force: true });
+    playBtn?.classList.remove('is-playing');
+    playBtn?.setAttribute('aria-label', 'Ver a animação inteira');
+  }
+  function glide(y, duration, done) {
+    if (lenis) { lenis.scrollTo(y, { duration, easing: (t) => t, force: true, onComplete: done }); return; }
+    const y0 = window.scrollY, t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / (duration * 1000));
+      window.scrollTo(0, y0 + (y - y0) * k);
+      if (k < 1) manual = requestAnimationFrame(step); else done?.();
+    };
+    manual = requestAnimationFrame(step);
+  }
+  // "Ver tudo": percorre a viagem sozinha, do ponto atual até o fim
+  playBtn?.addEventListener('click', () => {
+    if (playing) { stopPlay(); return; }
+    let p = pNow();
+    if (p > 0.97 || stageEl.getBoundingClientRect().top > 1) {
+      window.scrollTo(0, yAt(0)); lenis?.scrollTo(yAt(0), { immediate: true, force: true }); p = 0;
+    }
+    playing = true;
+    playBtn.classList.add('is-playing');
+    playBtn.setAttribute('aria-label', 'Pausar a animação');
+    glide(yAt(1), Math.max(2, (1 - p) * 18), () => { playing = false; playBtn.classList.remove('is-playing'); playBtn.setAttribute('aria-label', 'Ver a animação inteira'); });
+  });
+  // cada passo leva direto àquele momento
+  stepBtns.forEach((b) => b.addEventListener('click', () => {
+    stopPlay();
+    const target = +b.dataset.p;
+    const dist = Math.abs(target - pNow());
+    scrollTo(yAt(target), { duration: 0.8 + dist * 2.2, force: true });
+  }));
+  // mexer na página por conta própria interrompe o "Ver tudo"
+  for (const ev of ['wheel', 'touchstart', 'keydown']) window.addEventListener(ev, (e) => { if (playing && !(e.target instanceof Element && e.target.closest('.stage__bar'))) stopPlay(); }, { passive: true });
+
   /* ------------------------------ Painel -------------------------------- */
   const hudT = $('#hudT'), hudR = $('#hudR'), hudTemp = $('#hudTemp'), hudM = $('#hudM'), hudFill = $('#hudFill');
   function updateHud(p) {
@@ -302,6 +349,8 @@ export function initStory({ onDrop } = {}) {
     }
     updateHud(p);
     if (bar) bar.style.transform = `scaleX(${p.toFixed(4)})`;
+    const phaseIdx = p < 0.12 ? -1 : p < 0.3 ? 0 : p < 0.6 ? 1 : p < 0.8 ? 2 : 3;
+    stepBtns.forEach((b, i) => { b.classList.toggle('is-on', i === phaseIdx); b.toggleAttribute('aria-current', i === phaseIdx); });
 
     // gotícula
     const d = dropAt(p);

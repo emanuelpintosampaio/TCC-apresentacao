@@ -319,10 +319,33 @@ sub, sup { line-height: 0; }
 /* Barra de progresso da viagem */
 .stage__bar {
   position: absolute; left: var(--gutter); right: calc(var(--gutter) + 26px); bottom: clamp(26px, 5vh, 46px); z-index: 2;
-  display: grid; grid-template-columns: 18fr 30fr 20fr 20fr; padding-left: 12%;
+  display: grid; grid-template-columns: 12fr 18fr 30fr 20fr 20fr; align-items: end;
   font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(220, 240, 250, 0.6);
 }
-.stage__bar span { padding-bottom: 10px; }
+/* cada passo é um botão que leva direto àquele momento da animação */
+.stage__bar button {
+  display: flex; align-items: center; gap: 9px; padding: 8px 0 14px; text-align: left;
+  font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit;
+  transition: color 0.25s;
+}
+.stage__step::before {
+  content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor; opacity: 0.5; transition: background 0.25s, opacity 0.25s, box-shadow 0.25s;
+}
+.stage__step:hover, .stage__step.is-on { color: #fff; }
+.stage__step.is-on::before { background: var(--cyan); opacity: 1; box-shadow: 0 0 10px var(--cyan); }
+.stage__play { color: #fff; }
+.stage__play svg {
+  flex: none; width: 30px; height: 30px; padding: 8px; border-radius: 50%;
+  border: 1px solid rgba(220, 240, 250, 0.45); background: rgba(1, 20, 34, 0.35);
+  fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  transition: background 0.25s, border-color 0.25s;
+}
+.stage__play:hover svg { background: rgba(97, 227, 255, 0.18); border-color: var(--cyan); }
+.stage__play .i-play { stroke: none; }
+.stage__play .i-pause { display: none; fill: none; }
+.stage__play.is-playing .i-play { display: none; }
+.stage__play.is-playing .i-pause { display: inline; }
 .stage__bar i { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(200, 240, 255, 0.18); border-radius: 2px; }
 .stage__bar b { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), #fff); transform-origin: left; transform: scaleX(0); border-radius: 2px; box-shadow: 0 0 10px rgba(97, 227, 255, 0.8); }
 
@@ -701,7 +724,7 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
   body { font-size: 1rem; }
   .stage { height: 560vh; height: 560svh; }
   .stage__shade { background: linear-gradient(180deg, rgba(1, 14, 26, 0.55) 0%, transparent 22%, transparent 42%, rgba(1, 14, 26, 0.8) 70%, rgba(1, 14, 26, 0.96) 100%); }
-  .cap, .cap--title { top: auto; bottom: calc(58px + env(safe-area-inset-bottom)); translate: none; }
+  .cap, .cap--title { top: auto; bottom: calc(72px + env(safe-area-inset-bottom)); translate: none; }
   .cap__display { font-size: 15.5vw; line-height: 0.95; }
   .cap__lead { margin-top: 16px; font-size: 1rem; }
   .cap__cta { margin-top: 22px; }
@@ -724,7 +747,11 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
   .hud dd b { display: block; font-size: 0.8rem; }
   .hud__track { margin-top: 10px; }
   .hud__src { display: none; }
-  .stage__bar { bottom: calc(18px + env(safe-area-inset-bottom)); left: var(--gutter); right: var(--gutter); padding-left: 0; font-size: 0.56rem; letter-spacing: 0.08em; grid-template-columns: repeat(4, 1fr); }
+  .stage__bar { bottom: calc(10px + env(safe-area-inset-bottom)); left: var(--gutter); right: var(--gutter); font-size: 0.56rem; letter-spacing: 0.06em; grid-template-columns: auto repeat(4, 1fr); column-gap: 10px; }
+  .stage__bar button { padding: 10px 0 12px; gap: 6px; }
+  .stage__play span { display: none; }
+  .stage__play svg { width: 28px; height: 28px; }
+  .stage__step::before { width: 6px; height: 6px; }
 
   /* rolagem leve: sem desfoque atrás dos cartões e sem o granulado (pesam no celular) */
   body::after { display: none; }
