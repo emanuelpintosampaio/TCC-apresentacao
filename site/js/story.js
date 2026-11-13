@@ -49,6 +49,12 @@ const PATH_MOBILE_X = (x) => (x === null ? null : lerp(0.5, x, 0.35));
 // Referência SCONTROL do TCC, gotícula de 500 µm (legendas dos gráficos em
 // manim/imagens/). As curvas quase não mudam no começo e aceleram no fim.
 const REF = { tau: 0.72, r0: 500, r1: 499.987, T0: 19.80, T1: 19.37, m0: 6.500, m1: 6.560 };
+
+/* --------------------- Quadros da onda (celular) ------------------------ */
+// No celular, pular de um ponto a outro de um vídeo é lento e o scroll engasga.
+// Por isso lá a onda vem de 150 imagens em retrato (site/media/frames/), uma para
+// cada passo do scroll (já com a câmera lenta embutida), desenhadas num canvas.
+const FRAMES = { n: 150, w: 406, h: 720, src: (i) => `site/media/frames/m${String(i).padStart(3, '0')}.webp` };
 const fmt = (v, d) => v.toFixed(d).replace('.', ',');
 
 export function initStory({ onDrop } = {}) {
@@ -60,9 +66,13 @@ export function initStory({ onDrop } = {}) {
   const bar = $('#stageBar');
   const fallbackDrop = $('#stageDrop');
   const deepVideo = $('#deepVideo');
+  const pin = $('.stage__pin', stageEl);
   const html = document.documentElement;
   let drop = null;
   let lenis = null;
+  const useFrames = !reduced && window.matchMedia('(max-width: 860px), (pointer: coarse)').matches;
+  // altura da tela fixa: estável mesmo quando a barra do navegador do celular some
+  const pinH = () => pin.offsetHeight || window.innerHeight;
 
   /* ------------------------- Rolagem suave ------------------------------ */
   if (!reduced && window.Lenis) {
@@ -82,7 +92,7 @@ export function initStory({ onDrop } = {}) {
   const scrollTo = (target, opts) => (lenis ? lenis.scrollTo(target, opts) : (typeof target === 'number' ? window.scrollTo({ top: target, behavior: reduced ? 'auto' : 'smooth' }) : target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })));
   $$('[data-to-top]').forEach((b) => b.addEventListener('click', () => scrollTo(0, { duration: 2.2 })));
   $$('[data-dive]').forEach((b) => b.addEventListener('click', () => {
-    const y = stageEl.offsetTop + (stageEl.offsetHeight - window.innerHeight) * 0.33;
+    const y = stageEl.offsetTop + (stageEl.offsetHeight - pinH()) * 0.33;
     scrollTo(y, { duration: 2.4 });
   }));
 
@@ -99,7 +109,7 @@ export function initStory({ onDrop } = {}) {
   }
   video.addEventListener('seeked', () => { seeking = false; if (Math.abs(video.currentTime - wantT) >= 0.025) seekTo(wantT); });
 
-  if (!reduced) {
+  if (!reduced && !useFrames) {
     // Baixa o vídeo inteiro antes: assim pular de um quadro para outro é imediato
     const src = video.dataset.src;
     fetch(src)
@@ -112,6 +122,64 @@ export function initStory({ onDrop } = {}) {
       });
     // iOS só libera a busca de quadros depois de um toque
     window.addEventListener('touchstart', () => { video.play().then(() => video.pause()).catch(() => {}); }, { once: true, passive: true });
+  }
+
+  /* ------------------- Quadros num canvas (celular) --------------------- */
+  let framesCanvas = null, fctx = null, bgCanvas = null, bgCtx = null;
+  const imgs = new Array(FRAMES.n).fill(null);
+  let drawnKey = '';
+  if (useFrames) {
+    html.classList.add('frames-mode');
+    framesCanvas = document.createElement('canvas');
+    framesCanvas.className = 'stage__frames';
+    framesCanvas.setAttribute('aria-hidden', 'true');
+    video.after(framesCanvas);
+    fctx = framesCanvas.getContext('2d', { alpha: false });
+    // cópia pequena só para a refração da gota: subir a tela inteira para a placa
+    // de vídeo a cada quadro pesaria no celular, e dentro da gota ninguém nota a diferença
+    bgCanvas = document.createElement('canvas');
+    bgCtx = bgCanvas.getContext('2d', { alpha: false });
+    // carrega em passadas: primeiro um quadro a cada 16, depois preenche os buracos,
+    // assim a viagem já funciona inteira (mais "pulada") enquanto o resto chega
+    const order = [];
+    for (const step of [16, 8, 4, 2, 1]) for (let i = 0; i < FRAMES.n; i += step) if (!order.includes(i)) order.push(i);
+    let next = 0;
+    const load = () => {
+      if (next >= order.length) return;
+      const i = order[next++];
+      const im = new Image();
+      im.decoding = 'async';
+      im.src = FRAMES.src(i);
+      im.decode().then(() => { imgs[i] = im; drawnKey = ''; if (i === 0) html.classList.add('wave-ready'); }).catch(() => {}).finally(load);
+    };
+    for (let k = 0; k < 6; k++) load();   // seis downloads em paralelo
+  }
+  const nearest = (i, dir) => { for (let k = i; k >= 0 && k < FRAMES.n; k += dir) if (imgs[k]) return k; return -1; };
+  function drawFrames(p) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = window.innerWidth, H = pinH();
+    const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+    if (framesCanvas.width !== cw || framesCanvas.height !== ch) { framesCanvas.width = cw; framesCanvas.height = ch; drawnKey = ''; }
+    const f = p * (FRAMES.n - 1);
+    let a = nearest(Math.floor(f), -1), b = nearest(Math.ceil(f), 1);
+    if (a < 0) a = b; if (b < 0) b = a;
+    if (a < 0) return;
+    const t = b === a ? 0 : clamp01((f - a) / (b - a));
+    const key = `${a}|${b}|${t.toFixed(3)}|${cw}x${ch}`;
+    if (key === drawnKey) return;
+    drawnKey = key;
+    // "cover": preenche a tela inteira sem distorcer
+    const s = Math.max(cw / FRAMES.w, ch / FRAMES.h);
+    const dw = FRAMES.w * s, dh = FRAMES.h * s, dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+    fctx.globalAlpha = 1;
+    fctx.drawImage(imgs[a], dx, dy, dw, dh);
+    // mistura com o quadro seguinte: o movimento fica contínuo entre um e outro
+    if (t > 0.02 && b !== a) { fctx.globalAlpha = t; fctx.drawImage(imgs[b], dx, dy, dw, dh); }
+    const bw = 240, bh = Math.round(240 * ch / cw);
+    if (bgCanvas.width !== bw || bgCanvas.height !== bh) { bgCanvas.width = bw; bgCanvas.height = bh; }
+    bgCtx.drawImage(framesCanvas, 0, 0, bw, bh);
+    bgCanvas.dataset.ready = '1';
+    drop?.bgDirty?.();
   }
 
   /* ------------------------- Mar por dentro ----------------------------- */
@@ -157,8 +225,8 @@ export function initStory({ onDrop } = {}) {
   /* --------------------------- Crista da onda --------------------------- */
   // Onde fica, na tela, o ponto da crista em que a gota nasce (no quadro do vídeo)
   function crest() {
-    const W = window.innerWidth, H = window.innerHeight;
-    const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+    const W = window.innerWidth, H = pinH();
+    const vw = useFrames ? FRAMES.w : video.videoWidth || 1280, vh = useFrames ? FRAMES.h : video.videoHeight || 720;
     const s = Math.max(W / vw, H / vh);
     const ox = (W - vw * s) / 2, oy = (H - vh * s) / 2;
     const u = mobile() ? 0.5 : 0.56, v = 0.46;
@@ -166,7 +234,7 @@ export function initStory({ onDrop } = {}) {
   }
 
   function dropAt(p) {
-    const W = window.innerWidth, H = window.innerHeight, mn = Math.min(W, H);
+    const W = window.innerWidth, H = pinH(), mn = Math.min(W, H);
     const [cxF, cyF] = crest();
     const keys = PATH.map(([kp, x, y, r, a]) => {
       let X = x ?? cxF, Y = y ?? cyF;
@@ -202,7 +270,7 @@ export function initStory({ onDrop } = {}) {
   function frame() {
     requestAnimationFrame(frame);
     const rect = stageEl.getBoundingClientRect();
-    const H = window.innerHeight;
+    const H = pinH();
     const total = Math.max(1, stageEl.offsetHeight - H);
     const p = clamp01(-rect.top / total);
     const inStage = rect.bottom > 1 && rect.top < H;
@@ -222,7 +290,8 @@ export function initStory({ onDrop } = {}) {
       if (railName.textContent !== phase) railName.textContent = phase;
     }
 
-    seekTo(piecewise(VID_P, VID_T, p));
+    if (useFrames) drawFrames(p);
+    else seekTo(piecewise(VID_P, VID_T, p));
 
     // legendas
     for (const c of caps) {
@@ -243,8 +312,8 @@ export function initStory({ onDrop } = {}) {
       absorb: ss(0.30, 0.58, p),
       release: ss(0.82, 0.97, p),
       air: ss(0.19, 0.29, p),
-      video,
-      gain: 0.62,
+      video: useFrames ? bgCanvas : video,
+      gain: useFrames ? 0.72 : 0.62,
     };
     if (drop) drop.setStage(st);
     if (fallbackDrop) {
@@ -278,7 +347,7 @@ export function initStory({ onDrop } = {}) {
   if (lenis) requestAnimationFrame(raf);
 
   /* ---------------------------- Gotícula 3D ----------------------------- */
-  import('./droplet.js?v=5')
+  import('./droplet.js?v=9')
     .then(({ initDroplet }) => {
       drop = initDroplet({ canvas: $('#drop'), reducedMotion: reduced });
       if (!drop) throw new Error('sem gotícula');

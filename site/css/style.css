@@ -52,7 +52,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
-  font-size: 108%;   /* aumenta todo o texto do site de uma vez (tudo usa rem) */
+  font-size: 108%;
+  -webkit-tap-highlight-color: transparent;   /* aumenta todo o texto do site de uma vez (tudo usa rem) */
   background: var(--bg);
   scroll-padding-top: 72px;
   -webkit-text-size-adjust: 100%;
@@ -138,7 +139,8 @@ sub, sup { line-height: 0; }
   100% { transform: translate(0, -115vh); opacity: 0; }
 }
 
-#drop { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; }
+/* a altura em px vem do JS (estável quando a barra do navegador do celular some) */
+#drop { position: fixed; left: 0; top: 0; z-index: 1; width: 100%; height: 100vh; pointer-events: none; }
 
 /* Rótulo "CO₂" preso numa molécula, no palco */
 .co2tag {
@@ -234,12 +236,15 @@ sub, sup { line-height: 0; }
 .rail__dots button.is-on { background: var(--cyan); transform: scale(1.35); box-shadow: 0 0 12px var(--cyan); }
 
 /* ========================= ATO 1: A VIAGEM =============================== */
-.stage { position: relative; height: 640vh; }
+.stage { position: relative; height: 640vh; height: 640svh; }
 .stage__pin {
   position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
   background: #0b2a46 url("../media/hero-poster.webp") center / cover no-repeat;
 }
 .stage__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* no celular a onda vem de quadros desenhados num canvas (story.js) */
+.stage__frames { position: absolute; inset: 0; width: 100%; height: 100%; }
+.frames-mode .stage__video { display: none; }
 .stage__shade {
   position: absolute; inset: 0; pointer-events: none;
   background:
@@ -694,35 +699,67 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
 }
 @media (max-width: 860px) {
   body { font-size: 1rem; }
-  .stage { height: 600vh; }
-  .stage__shade { background: linear-gradient(180deg, rgba(1, 14, 26, 0.5) 0%, transparent 25%, transparent 45%, rgba(1, 14, 26, 0.86) 78%, rgba(1, 14, 26, 0.95) 100%); }
-  .cap { bottom: 64px; }
-  .cap--title { top: auto; bottom: 64px; translate: none; }
-  .cap__display { font-size: 16vw; }
-  .cap__lead { font-size: 1rem; }
-  .cap__title { font-size: 11vw; }
-  .hud { top: 76px; bottom: auto; right: 12px; width: 178px; padding: 10px 12px; border-radius: 14px; }
-  .hud dl { margin-top: 6px; gap: 2px; }
-  .hud dt { font-size: 0.7rem; }
-  .hud dd { font-size: 0.66rem; }
-  .hud dd b { font-size: 0.82rem; }
-  .hud__title { font-size: 0.6rem; }
+  .stage { height: 560vh; height: 560svh; }
+  .stage__shade { background: linear-gradient(180deg, rgba(1, 14, 26, 0.55) 0%, transparent 22%, transparent 42%, rgba(1, 14, 26, 0.8) 70%, rgba(1, 14, 26, 0.96) 100%); }
+  .cap, .cap--title { top: auto; bottom: calc(58px + env(safe-area-inset-bottom)); translate: none; }
+  .cap__display { font-size: 15.5vw; line-height: 0.95; }
+  .cap__lead { margin-top: 16px; font-size: 1rem; }
+  .cap__cta { margin-top: 22px; }
+  .cap__cta .btn { flex: 1; justify-content: center; }
+  .cap__byline { margin-top: 18px; font-size: 0.66rem; }
+  .cap__title { font-size: 10.5vw; }
+  .cap > p:not(.kicker):not(.cap__lead):not(.cap__byline) { font-size: 1rem; }
+
+  /* painel da gotícula: uma faixa compacta logo abaixo do menu */
+  .hud {
+    top: calc(64px + env(safe-area-inset-top)); bottom: auto; left: 12px; right: 12px; width: auto;
+    padding: 10px 14px 12px; border-radius: 14px; background: rgba(1, 20, 34, 0.72);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .hud__title { font-size: 0.62rem; }
+  .hud dl { margin-top: 8px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .hud dl div { display: grid; gap: 1px; justify-content: start; }
+  .hud dt { font-size: 0.66rem; }
+  .hud dd { font-size: 0.6rem; }
+  .hud dd b { display: block; font-size: 0.8rem; }
+  .hud__track { margin-top: 10px; }
   .hud__src { display: none; }
-  .stage__bar { bottom: 18px; left: var(--gutter); right: var(--gutter); padding-left: 0; font-size: 0.56rem; letter-spacing: 0.08em; grid-template-columns: repeat(4, 1fr); }
-  .sec__split { grid-template-columns: minmax(0, 1fr); }
+  .stage__bar { bottom: calc(18px + env(safe-area-inset-bottom)); left: var(--gutter); right: var(--gutter); padding-left: 0; font-size: 0.56rem; letter-spacing: 0.08em; grid-template-columns: repeat(4, 1fr); }
+
+  /* rolagem leve: sem desfoque atrás dos cartões e sem o granulado (pesam no celular) */
+  body::after { display: none; }
+  .card, .panel, .tablewrap, .charts, .callout, .impact__item, .link, .pid__text, .takeaways li, .bigquote, .btn--ghost, .mat--poster {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  :root { --card: rgba(3, 26, 42, 0.86); }
+  .js .reveal { transform: translateY(18px); transition-duration: 0.7s, 0.8s; }
+
+  .sec { padding: 84px 0; }
+  .sec__head { margin-bottom: 34px; }
+  h2 { font-size: clamp(2.2rem, 10vw, 3.2rem); }
+  .lead { margin-top: 18px; }
+  .sec__split { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .stage-ring { max-width: 420px; }
   .sec__head { grid-template-columns: minmax(0, 1fr); }
-  .sec__head .drop-anchor--head { position: absolute; right: 0; top: -14px; width: 84px; margin: 0; }
+  .sec__head .drop-anchor--head { position: absolute; right: 0; top: 10px; width: 78px; margin: 0; }
   .sec__head h2 { padding-right: 70px; }
   .callout { padding: 9px 13px; }
   .callout b { font-size: 1.05rem; }
   .callout > span { font-size: 0.76rem; }
+  .journey { gap: 64px; }
   .journey::before { left: 19px; }
   .journey__step { grid-template-columns: 40px minmax(0, 1fr); gap: 14px; }
-  .journey__mark span { width: 40px; height: 40px; font-size: 1.05rem; top: 80px; }
+  .journey__mark span { width: 40px; height: 40px; font-size: 1rem; top: 76px; }
+  .journey__body > h3 { font-size: 1.5rem; }
+  .impact { gap: 16px; }
   .impact__item { grid-template-columns: minmax(0, 1fr); }
   .impact__item figure { aspect-ratio: 16 / 9; }
   .takeaways .is-key { grid-template-columns: minmax(0, 1fr); }
+  .bigquote, .answer { padding: 26px 22px; }
+  .bigquote__text { font-size: 1.45rem; }
+  .answer__text { font-size: 1.35rem; }
+  .eq--big { font-size: 1.05rem; }
+  .player__ctrl button { width: 46px; height: 46px; }
 }
 @media (max-width: 560px) {
   .stats, .mats__grid { grid-template-columns: minmax(0, 1fr); }

@@ -162,7 +162,7 @@ const STICK_R = 0.11, STICK_GAP = 0.2;      // espessura e afastamento das duas 
 export function initDroplet({ canvas, reducedMotion = false }) {
   const mobile = window.matchMedia('(max-width: 860px)').matches;
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !mobile, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -189,7 +189,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
   function textureFor(video) {
     if (!bgSources.has(video)) {
-      const tex = new THREE.VideoTexture(video);
+      // o fundo pode ser um vídeo ou um canvas (os quadros da onda no celular)
+      const tex = video instanceof HTMLCanvasElement ? new THREE.CanvasTexture(video) : new THREE.VideoTexture(video);
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.minFilter = THREE.LinearFilter;
       // Vídeo parado (o da onda, rolado pelo scroll): atualiza a cada quadro novo
@@ -224,7 +225,7 @@ export function initDroplet({ canvas, reducedMotion = false }) {
       uLight: { value: new THREE.Vector2(-0.45, 0.6) },
     },
   });
-  const drop = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 32), dropMat);
+  const drop = new THREE.Mesh(new THREE.IcosahedronGeometry(1, mobile ? 18 : 32), dropMat);
   drop.renderOrder = 2;
   const haloMat = new THREE.ShaderMaterial({
     vertexShader: HALO_VERT, fragmentShader: HALO_FRAG,
@@ -238,7 +239,7 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
   // ---------------- Moléculas de CO2 ----------------
   const NMOL = mobile ? 26 : 40;
-  const atomGeo = new THREE.SphereGeometry(1, 24, 18);
+  const atomGeo = mobile ? new THREE.SphereGeometry(1, 14, 10) : new THREE.SphereGeometry(1, 24, 18);
   // material com verniz: brilho nítido e reflexo do ambiente
   const atomMat = new THREE.MeshPhysicalMaterial({ roughness: 0.3, metalness: 0.0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.55 });
   const atoms = new THREE.InstancedMesh(atomGeo, atomMat, NMOL * 3);
@@ -299,11 +300,19 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
   // ---------------- Tela ----------------
   let W = 1, H = 1, dpr = 1;
+  const touch = window.matchMedia('(pointer: coarse)').matches;
   function resize() {
-    W = window.innerWidth; H = window.innerHeight;
-    dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.5 : 2);
+    // no celular, a barra de endereço aparece e some durante o scroll e muda a altura
+    // da tela; refazer o canvas a cada vez faz a gota piscar, então mudanças pequenas
+    // só de altura são ignoradas (o canvas usa a maior altura já vista)
+    const nw = window.innerWidth, nh = window.innerHeight;
+    if (touch && nw === W && nh <= H && H - nh < 180) return;
+    const sameWidth = nw === W;
+    W = nw; H = touch && sameWidth ? Math.max(nh, H) : nh;   // girar o celular recalcula tudo
+    dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.35 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(W, H, false);
+    canvas.style.height = `${H}px`;
     camera.right = W; camera.bottom = -H;
     camera.updateProjectionMatrix();
     dropMat.uniforms.uView.value.set(W, H);
@@ -314,6 +323,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
   // Retângulo que um vídeo em "object-fit: cover" ocupa na tela
   function cover(video) {
+    // os quadros já são desenhados no tamanho da tela fixa da viagem
+    if (video instanceof HTMLCanvasElement) return [0, 0, W, document.querySelector('.stage__pin')?.offsetHeight || H];
     const vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
     const s = Math.max(W / vw, H / vh);
     return [(W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s];
@@ -436,7 +447,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
 
     // Fundo refratado
     const vid = stage?.video || bgVideo;
-    if (vid && vid.readyState >= 2) {
+    const ready = vid && (vid instanceof HTMLCanvasElement ? vid.dataset.ready === '1' : vid.readyState >= 2);
+    if (ready) {
       dropMat.uniforms.uBg.value = textureFor(vid);
       bgReady = lerp(bgReady, 1, 1 - Math.exp(-dt * 6));
       dropMat.uniforms.uCover.value.set(...cover(vid));
@@ -539,6 +551,8 @@ export function initDroplet({ canvas, reducedMotion = false }) {
     // Vídeo que fica atrás da gota fora do palco
     setBackground(video) { bgVideo = video; },
     setHighlight(name) { highlight = name; },
+    // avisa que o canvas de fundo mudou (um quadro novo da onda)
+    bgDirty() { const src = stage?.video; if (src && bgSources.has(src)) bgSources.get(src).needsUpdate = true; },
     // Uma molécula que ainda está no ar, perto da gota (para o rótulo "CO₂")
     nearestAirMolecule() {
       let best = null, bd = Infinity;
