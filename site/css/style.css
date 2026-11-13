@@ -282,14 +282,13 @@ sub, sup { line-height: 0; }
 .cap__display sub { font-size: 0.42em; vertical-align: -0.02em; letter-spacing: 0; }
 .cap__lead { margin-top: 24px; max-width: 46ch; font-size: clamp(1.05rem, 1.45vw, 1.28rem); color: rgba(236, 248, 255, 0.86); }
 .cap__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-.cap__byline { margin-top: 28px; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; color: rgba(220, 240, 250, 0.7); }
 .cap__title {
   margin-top: 14px;
   font-family: var(--display); font-weight: 800;
   font-size: clamp(2.3rem, 5.2vw, 4.7rem); line-height: 1; letter-spacing: -0.005em;
   text-shadow: 0 8px 40px rgba(0, 20, 40, 0.55);
 }
-.cap > p:not(.kicker):not(.cap__lead):not(.cap__byline) {
+.cap > p:not(.kicker):not(.cap__lead) {
   margin-top: 18px; max-width: 44ch; font-size: clamp(1rem, 1.3vw, 1.15rem); color: rgba(236, 248, 255, 0.88);
   text-shadow: 0 2px 18px rgba(0, 20, 40, 0.6);
 }
@@ -319,7 +318,7 @@ sub, sup { line-height: 0; }
 /* Barra de progresso da viagem */
 .stage__bar {
   position: absolute; left: var(--gutter); right: calc(var(--gutter) + 26px); bottom: clamp(26px, 5vh, 46px); z-index: 2;
-  display: grid; grid-template-columns: auto 18fr 30fr 20fr 20fr; column-gap: clamp(16px, 2.5vw, 36px); align-items: end;
+  display: grid; grid-template-columns: 18fr 30fr 20fr 20fr; padding-left: 12%; column-gap: clamp(16px, 2.5vw, 36px); align-items: end;
   font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(220, 240, 250, 0.6);
 }
 /* cada passo é um botão que leva direto àquele momento da animação */
@@ -334,16 +333,13 @@ sub, sup { line-height: 0; }
 }
 .stage__step:hover, .stage__step.is-on { color: #fff; }
 .stage__step.is-on::before { background: var(--cyan); opacity: 1; box-shadow: 0 0 10px var(--cyan); }
-/* "Ver tudo": botão cheio e claro, o mais visível da barra, com um pulso suave enquanto parado */
-.stage__bar .stage__play {
-  position: relative; align-self: center; margin-bottom: 14px;
-  gap: 10px; padding: 10px 20px 10px 12px; border-radius: 999px;
+/* "Ver animação": botão cheio e claro na abertura, com um pulso suave para chamar atenção */
+.stage__play {
+  position: relative; padding: 9px 22px 9px 9px; border-radius: 999px;
   background: #fff; color: #012033;
-  font-family: var(--body); font-size: 0.92rem; font-weight: 700; letter-spacing: 0.01em; text-transform: none;
   box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.55);
-  transition: transform 0.25s var(--ease), background 0.25s;
 }
-.stage__bar .stage__play:hover { transform: translateY(-2px); background: #e9fbff; }
+.stage__play:hover { background: #e9fbff; }
 .stage__play::after {
   content: ""; position: absolute; inset: -5px; border-radius: inherit;
   border: 2px solid rgba(255, 255, 255, 0.7); opacity: 0; pointer-events: none;
@@ -742,10 +738,13 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
   .cap__display { font-size: 15.5vw; line-height: 0.95; }
   .cap__lead { margin-top: 16px; font-size: 1rem; }
   .cap__cta { margin-top: 22px; }
-  .cap__cta .btn { flex: 1; justify-content: center; }
-  .cap__byline { margin-top: 18px; font-size: 0.66rem; }
+  /* os dois botões da abertura lado a lado */
+  .cap__cta { flex-wrap: nowrap; gap: 10px; }
+  .cap__cta .btn { flex: 1; justify-content: center; padding: 12px 10px; font-size: 0.9rem; gap: 8px; }
+  .cap__cta .stage__play { padding-left: 6px; }
+  .cap__cta .stage__play svg { width: 28px; height: 28px; padding: 8px; }
   .cap__title { font-size: 10.5vw; }
-  .cap > p:not(.kicker):not(.cap__lead):not(.cap__byline) { font-size: 1rem; }
+  .cap > p:not(.kicker):not(.cap__lead) { font-size: 1rem; }
 
   /* painel da gotícula: uma faixa compacta logo abaixo do menu */
   .hud {
@@ -761,12 +760,10 @@ kbd { display: inline-block; padding: 1px 7px; border-radius: 6px; border: 1px s
   .hud dd b { display: block; font-size: 0.8rem; }
   .hud__track { margin-top: 10px; }
   .hud__src { display: none; }
-  .stage__bar { bottom: calc(10px + env(safe-area-inset-bottom)); left: var(--gutter); right: var(--gutter); font-size: 0.56rem; letter-spacing: 0.06em; grid-template-columns: auto repeat(4, 1fr); column-gap: 10px; }
+  .stage__bar { bottom: calc(10px + env(safe-area-inset-bottom)); left: var(--gutter); right: var(--gutter); font-size: 0.56rem; letter-spacing: 0.06em; grid-template-columns: repeat(4, 1fr); padding-left: 0; column-gap: 10px; }
   .stage__bar { column-gap: 8px; letter-spacing: 0.02em; }
   .stage__bar button { padding: 10px 0 12px; gap: 5px; white-space: nowrap; }
-  .stage__play span { display: none; }
-  .stage__bar .stage__play { padding: 6px; margin-bottom: 8px; }
-  .stage__play svg { width: 32px; height: 32px; padding: 9px; }
+
   .stage__step::before { width: 6px; height: 6px; }
 
   /* rolagem leve: sem desfoque atrás dos cartões e sem o granulado (pesam no celular) */

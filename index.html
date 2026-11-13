@@ -17,7 +17,7 @@
   <link rel="preload" href="site/vendor/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="site/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="site/vendor/lenis/lenis.css">
-  <link rel="stylesheet" href="site/css/style.css?v=19">
+  <link rel="stylesheet" href="site/css/style.css?v=23">
 </head>
 <body>
   <a class="skip" href="#impacto">Pular para o conteúdo</a>
@@ -87,12 +87,15 @@
             <h1 class="cap__display">O caminho<br>do CO<sub>2</sub></h1>
             <p class="cap__lead">Uma gotícula sai da crista da onda, absorve gás carbônico do ar e o leva para o fundo do mar. Como calcular isso com precisão, sem gastar uma eternidade?</p>
             <div class="cap__cta">
+              <button type="button" class="btn stage__play" id="stagePlay" aria-label="Ver a animação inteira">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M5 3v10l8-5z"/><path class="i-pause" d="M5 3v10M11 3v10"/></svg>
+                <span>Ver animação</span>
+              </button>
               <button class="btn btn--ghost" type="button" data-open-player>
                 <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
                 Ver a defesa
               </button>
             </div>
-            <p class="cap__byline">Emanuel Pinto Sampaio · orientação do Prof. Dr. Iury Ângelo Gonçalves · São Mateus, ES · 2026</p>
           </article>
 
           <article class="cap" data-from="0.13" data-to="0.29" data-poster="site/media/story-2.webp">
@@ -133,12 +136,8 @@
           <p class="hud__src">t vai de 0 até \(\tau_f \approx 0{,}72\) s. Valores da simulação de referência (SCONTROL) do TCC.</p>
         </aside>
 
-        <!-- Botões da animação: ver tudo de uma vez ou ir direto a cada passo -->
+        <!-- Botões dos passos da animação: cada um leva direto àquele momento -->
         <nav class="stage__bar" aria-label="Passos da animação">
-          <button type="button" class="stage__play" id="stagePlay" aria-label="Ver a animação inteira">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M5 3v10l8-5z"/><path class="i-pause" d="M5 3v10M11 3v10"/></svg>
-            <span>Ver animação</span>
-          </button>
           <button type="button" class="stage__step" data-p="0.21">Na crista</button>
           <button type="button" class="stage__step" data-p="0.45">No ar</button>
           <button type="button" class="stage__step" data-p="0.70">A queda</button>
