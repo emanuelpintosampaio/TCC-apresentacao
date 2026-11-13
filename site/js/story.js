@@ -206,16 +206,20 @@ export function initStory({ onDrop } = {}) {
     const el = chapters[i];
     if (el) scrollTo(el, { offset: i === 0 ? 0 : -64, duration: 1.6 });
   }));
+  const foot = $('.foot');
   const chapterObs = new IntersectionObserver((entries) => {
     for (const en of entries) {
       if (!en.isIntersecting) continue;
-      const i = chapters.indexOf(en.target);
+      // o rodapé conta como parte da última seção (Materiais)
+      const i = en.target === foot ? chapters.length - 1 : chapters.indexOf(en.target);
+      if (en.target === foot && railName) railName.textContent = chapters[i].dataset.chapter;
       railDots.forEach((b, k) => b.classList.toggle('is-on', k === i));
       if (i > 0 && railName) railName.textContent = en.target.dataset.chapter;
       $$('.nav__links a').forEach((a) => a.classList.toggle('is-on', a.getAttribute('href') === `#${en.target.id}`));
     }
   }, { rootMargin: '-45% 0px -50% 0px' });
   chapters.forEach((c) => chapterObs.observe(c));
+  if (foot) chapterObs.observe(foot);
 
   /* --------------------------- Crista da onda --------------------------- */
   // Onde fica, na tela, o ponto da crista em que a gota nasce (no quadro do vídeo)
